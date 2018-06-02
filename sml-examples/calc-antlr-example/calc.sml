@@ -1,4 +1,4 @@
-(* ivprog.sml *)
+(* calc.sml *)
 
 (* This file provides glue code for building the calculator using the
  * parser and lexer specified in calc.lex and calc.grm.

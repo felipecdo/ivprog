@@ -1,0 +1,12 @@
+.cm
+*.sig
+*.grm.sml
+*.desc
+*.aux
+*.bbl
+*.blg
+*.idx
+*.log
+*.pdf
+*.toc
+*.synctex.gz

@@ -1,9 +1,12 @@
-Group is
-
+Library 
+  structure CalcLexer
+  functor CalcParseFn
+  structure CalcTest
+is
   $/basis.cm
   $SMLNJ-LIB/Util/smlnj-lib.cm
   $/ml-yacc-lib.cm
 
-  calc.g
-  calc.lex
-  calc.sml
+  calc.grm : ml-antlr
+  calc.lex : ml-ulex
+  calc-test.sml

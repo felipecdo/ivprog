@@ -1,6 +1,7 @@
 .cm
 *.sig
 *.grm.sml
+*.lex.sml
 *.desc
 *.aux
 *.bbl

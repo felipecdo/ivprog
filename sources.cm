@@ -1,7 +1,9 @@
 Library
   structure IVProgLexer
   structure IVProgTokens
+  structure IVProgTester
   structure Ast
+  structure BooleanConverter
 is
   $/basis.cm
   $/smlnj-lib.cm
@@ -10,5 +12,6 @@ is
   ivprog.lex : ml-ulex
   int_map.sml
   ast.sml
-  ivprog-test.sml
+  boolean_converter.sml
+  ivprog_test.sml
   exceptions.sml

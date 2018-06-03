@@ -23,7 +23,7 @@
   fun eof() = T.EOF
   val stringbuf = ref "";
 );
-
+(* <start state list> regular expression => ( code ); *)
 <INITIAL> bloco => ( T.KW_bloco );
 <INITIAL> se => ( T.KW_if );
 <INITIAL> senao => ( T.KW_else );
@@ -41,12 +41,16 @@
 <INITIAL> {unary_boolean_op} => ( T.UN_BOOLEAN_OP yytext );
 
 <INITIAL> {int} => ( T.CON_int (valOf (Int.fromString yytext)) );
+<INITIAL> {real} => ( T.CON_real (valOf (Real.fromString yytext)) );
+(* Não funciona e nao tenho ideia do motivo *)
+(* <INITIAL> {boolean} => ( T.CON_boolean (valOf (BooleanConverter.fromString yytext)) ); *)
+
 <INITIAL> "(" => ( T.LP );
 <INITIAL> ")" => ( T.RP );
 <INITIAL> "{" => ( T.LC );
 <INITIAL> "}" => ( T.RC );
 <INITIAL> ";" => ( T.SEMI );
 <INITIAL> " " | \n | \t => ( continue() );
-
+<INITIAL> "\"" => ( YYBEGIN(CON_STRING); stringbuf := ""; continue() );
 <CON_STRING> "\"" => ( YYBEGIN(INITIAL); T.CON_string(!stringbuf) );
 <CON_STRING> [^"]* => ( stringbuf := (!stringbuf ^ yytext); continue() );

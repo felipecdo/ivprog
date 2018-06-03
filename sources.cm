@@ -1,11 +1,9 @@
-Library 
-  structure IvProgLexer
-  functor IvProgParseFn
-  structure IvProgTest
-is
+Group is
+
   $/basis.cm
   $SMLNJ-LIB/Util/smlnj-lib.cm
+  $/ml-yacc-lib.cm
 
-  ivprog.grm : ml-antlr
-  ivprog.lex : ml-ulex
+  ivprog.grm
+  ivprog.lex
   ivprog-test.sml

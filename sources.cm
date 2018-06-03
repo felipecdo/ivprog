@@ -1,9 +1,14 @@
-Group is
-
+Library
+  structure IVProgLexer
+  structure IVProgTokens
+  structure Ast
+is
   $/basis.cm
-  $SMLNJ-LIB/Util/smlnj-lib.cm
-  $/ml-yacc-lib.cm
-
-  ivprog.grm
-  ivprog.lex
+  $/smlnj-lib.cm
+  $/ml-lpt-lib.cm
+  ivprog.grm : ml-antlr
+  ivprog.lex : ml-ulex
+  int_map.sml
+  ast.sml
   ivprog-test.sml
+  exceptions.sml

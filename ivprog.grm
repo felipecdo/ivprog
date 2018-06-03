@@ -1,50 +1,83 @@
-(* Sample interactive IVProgulator for ML-Yacc *)
+%name IVProg;
 
-fun lookup "bogus" = 10000
-  | lookup s = 0
+%defs (
+  structure A = Ast
+);
 
-%%
+%tokens
+  : KW_bloco ("bloco")
+  | KW_if ("se") | KW_else ("senao")
+  | CON_int of Int.int | CON_string of string
+  | ID of string | RELATIONAL_OP of string
+  | ARITHMETIC_OP of string | BI_BOOLEAN_OP of string | UN_BOOLEAN_OP of string
+  | LP ("(") | RP (")") | SEMI (";")
+  | LC ("{") | RC ("}")
+  | KW_while ("enquanto") 
+  | KW_for ("para") | KW_from ("de") | KW_until ("ate")
+  ;
 
-%eop EOF SEMI
+%start exp;
 
-(* %pos declares the type of positions for terminals.
-   Each symbol has an associated left and right position. *)
+exp
+  : %try blockExp SEMI expsequence => ( A.Sequence(blockExp :: expsequence) )
+  | %try blockExp
+  ;
 
-%pos int
+expsequence
+  : %try blockExp SEMI expsequence => ( blockExp :: expsequence )
+  | %try blockExp => ( [blockExp] )
+  ;
 
-%left SUB PLUS
-%left TIMES DIV
-%right CARAT
+blockExp
+  : KW_if opExp LC opExp KW_else opExp => ( A.IfThenElse(opExp1, opExp2, opExp3) )
+  | opExp
+  ;
 
-%term ID of string | NUM of int | PLUS | TIMES | PRINT |
-      SEMI | EOF | CARAT | DIV | SUB
-%nonterm EXP of int | START of int option
+opExp
+  : %try appExps OP opExp => ( A.InfixApp(appExps, OP, opExp) )
+  | %try appExps
+  ;
 
-%name IVProg
+appExps
+  : simpleExp+ =>
+    (
+      let
+        fun apps(result, nil) = result
+          | apps(result, hd :: tl) = A.App(apps(hd, tl), result)
 
-%subst PRINT for ID
-%prefer PLUS TIMES DIV SUB
-%keyword PRINT SEMI
+        val simpleExpRev = List.rev simpleExp
+      in
+        apps(List.hd simpleExpRev, List.tl simpleExpRev)
+      end
+    )
+  ;
 
-%noshift EOF
-%value ID ("bogus")
-%verbose
-%%
+simpleExp
+  : CON_int => ( A.IntConstant(CON_int) )
+  | CON_string => ( A.StringConstant(CON_string) )
+  | ID => ( A.Variable(ref (A.create_symbol ID)) )
+  | %try LP exp RP => ( exp )
+  | LP RP => ( A.Unit )
+  ;
 
-(* the parser returns the value associated with the expression *)
+explist
+  : %try exp => ( [exp] )
+  ;
 
-  START : PRINT EXP (print (Int.toString EXP);
-                     print "\n";
-                     SOME EXP)
-        | EXP (SOME EXP)
-        | (NONE)
-  EXP : NUM             (NUM)
-      | ID              (lookup ID)
-      | EXP PLUS EXP    (EXP1+EXP2)
-      | EXP TIMES EXP   (EXP1*EXP2)
-      | EXP DIV EXP     (EXP1 div EXP2)
-      | EXP SUB EXP     (EXP1-EXP2)
-      | EXP CARAT EXP   (let fun e (m,0) = 1
-                                | e (m,l) = m*e(m,l-1)
-                         in e (EXP1,EXP2)
-                         end)
+fnArgs
+  : LP RP => ( [] )
+  | LP arglist RP => ( arglist )
+  | ID => ( [A.Name(ref (A.create_symbol ID))] )
+  ;
+
+arglist
+  : %try ID => ( [A.Name(ref (A.create_symbol ID))] )
+  ;
+
+valdec
+  : ID OP exp %where ( OP = "=" ) => ( A.Valdec(A.Name(ref (A.create_symbol ID)), false, exp) )
+  ;
+
+fundec
+  : ID fnArgs OP exp %where ( OP = "=" ) => ( A.Valdec(A.Name(ref (A.create_symbol ID)), true, A.Fn(fnArgs, exp)) )
+  ;

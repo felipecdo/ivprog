@@ -1,70 +1,52 @@
-structure Tokens = Tokens
+(* Missing check *)
+%name IVProgLexer;
 
-type pos = int
-type svalue = Tokens.svalue
-type ('a,'b) token = ('a,'b) Tokens.token
-type lexresult= (svalue,pos) token
+%let digit = [0-9];
+%let int = {digit}+;(* Ainda nao suporta negativo *)
+%let real = {int}"."{digit}+;(* Ainda nao suporta negativo *)
+%let letter = [a-zA-Z];
+%let id = (_|{letter})(_|{letter}|{digit})*;
+%let relational_op = ("<" | ">" | "<=" | ">=" | "==" | "<>")+;
+%let arithmetic_op = ("+" | "-" | "/" | "*" | "%")+;
+%let binary_boolean_op = ("AND" | "OR" | {relational_op})+;
+%let unary_boolean_op = ("NOT")+;
+%let data_type = "inteiro"|"real"|"booleano"|"texto";
+%let boolean = "verdadeiro"|"falso";
+%let characters = """[a-zA-Z0-9]""";(* Incluir outros chars *)
+%let literal = {int}|{id}|{boolean}|{characters}|"vazio";
 
-val pos = ref 0
-fun eof () = Tokens.EOF(!pos,!pos)
-fun error (e,l : int,_) = TextIO.output (TextIO.stdOut, String.concat[
-	"line ", (InTokens.toString l), ": ", e, "\n"
-      ])
+%states CON_STRING;
 
-%%
-%header (functor IVProgLexFun(structure Tokens: IVProg_TOKENS));
+%defs (
+  structure T = IVProgTokens
+  type lex_result = T.token
+  fun eof() = T.EOF
+  val stringbuf = ref "";
+);
 
-alpha=[A-Za-z];
-digit=[0-9];
-ws = [\ \t];  
-%%
-\n       => (pos := (!pos) + 1; lex());
-{ws}+    => (lex());
-{digit}+ => (Tokens.NUM (valOf (InTokens.fromString yytext), !pos, !pos));
+<INITIAL> bloco => ( T.KW_bloco );
+<INITIAL> se => ( T.KW_if );
+<INITIAL> senao => ( T.KW_else );
 
-"=="     => ( Tokens.EQ(!pos,!pos) );
-"<>"     => ( Tokens.NEQ(!pos,!pos) );
-"+"      => ( Tokens.PLUS(!pos,!pos) );
-"-"      => ( Tokens.MINUS(!pos,!pos) );
-"*"      => ( Tokens.TIMES(!pos,!pos) );
-"/"      => ( Tokens.DIV(!pos,!pos) );
-"%"      => ( Tokens.MOD(!pos,!pos) );
-">"      => ( Tokens.GREATER(!pos,!pos) );
-"<"      => ( Tokens.LOWER(!pos,!pos) );
-">="     => ( Tokens.GE(!pos,!pos) );
-"<="     => ( Tokens.LE(!pos,!pos) );
-"e"      => ( Tokens.AND(!pos,!pos) );
-"ou"     => ( Tokens.OR(!pos,!pos) );
-"nao"    => ( Tokens.NOT(!pos,!pos) );
-"("      => ( Tokens.LP(!pos,!pos) );
-")"      => ( Tokens.RP(!pos,!pos) );
-"verdadeiro" => ( Tokens.TRUE(!pos,!pos)  );
-"false"      => ( Tokens.FALSE(!pos,!pos)  );
+<INITIAL> enquanto => ( T.KW_while );
+<INITIAL> para => ( T.KW_for );
+<INITIAL> de => ( T.KW_from );
+<INITIAL> ate => ( T.KW_until );
 
-characters='.*';
-boolean=Tokens.TRUE|Tokens.FALSE;
+<INITIAL> {id} => ( T.ID yytext );
 
-natural={digit}+;
-integer=[(\-)]{natural};
-real={integer}\.{natural};
-number={integer}|{real};
+<INITIAL> {relational_op} => ( T.RELATIONAL_OP yytext );
+<INITIAL> {arithmetic_op} => ( T.ARITHMETIC_OP yytext );
+<INITIAL> {binary_boolean_op} => ( T.BI_BOOLEAN_OP yytext );
+<INITIAL> {unary_boolean_op} => ( T.UN_BOOLEAN_OP yytext );
 
-identifier = (_|{alpha})(_|{alpha}|{digit});
+<INITIAL> {int} => ( T.CON_int (valOf (Int.fromString yytext)) );
+<INITIAL> "(" => ( T.LP );
+<INITIAL> ")" => ( T.RP );
+<INITIAL> "{" => ( T.LC );
+<INITIAL> "}" => ( T.RC );
+<INITIAL> ";" => ( T.SEMI );
+<INITIAL> " " | \n | \t => ( continue() );
 
-binary_boolean_operator = Tokens.AND|Tokens.OR;
-unary_boolean_operator = Tokens.NOT;
-relational_operator = Tokens.GREATER|Tokens.LOWER|Tokens.GE|Tokens.LE|Tokens.NEQ|Tokens.EQ;
-arithmetic_operator = Tokens.PLUS|Tokens.MINUS|Tokens.TIMES|Tokens.DIV|Tokens.MOD;
-boolean_operator = {relational_operator}|{binary_boolean_operator};
-
-data_type = inteiro|real|booleano|texto;
-literal = {number}|{identifier}|{boolean}|{characters}|vazio;
-
-{alpha}+ => (if yytext="print"
-                 then Tokens.PRINT(!pos,!pos)
-                 else Tokens.ID(yytext,!pos,!pos)
-            );
-
-
-"."      => (error ("ignoring bad character "^yytext,!pos,!pos);
-             lex());
+<CON_STRING> "\"" => ( YYBEGIN(INITIAL); T.CON_string(!stringbuf) );
+<CON_STRING> [^"]* => ( stringbuf := (!stringbuf ^ yytext); continue() );

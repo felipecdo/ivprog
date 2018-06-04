@@ -6,12 +6,12 @@ structure IVProgTester =
       let
         val initial_strm = IVProgLexer.streamifyInstream (TextIO.openString inputString)
         val lexer = IVProgLexer.lex (AntlrStreamPos.mkSourcemap())
-        fun dowork(strm) =
+        fun dowork(strm) =  
           let
             val lex_result = lexer strm
             val next_token = #1 lex_result
           in
-            if (next_token = IVProgTokens.EOF)
+            if IVProgTokens.isEOF next_token
             then []
             else next_token :: dowork(#3 lex_result)
           end
@@ -29,5 +29,4 @@ structure IVProgTester =
           of SOME(exp) => exp
           |  _ => raise Exceptions.ParseError ("parse error on " ^ inputString))
       end
-
-end
+  end

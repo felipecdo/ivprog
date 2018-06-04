@@ -19,5 +19,7 @@ in => ( T.KW_in );
 "(" => ( T.LP );
 ")" => ( T.RP );
 " " | \n | \t
-=> ( continue() );
-. => ( print "Error during lexical process" );
+    => ( continue() );
+(* tinha um handle erro. Tentei adicionad a linha abaixo mas não deu. Ignorando por enquanto  *)
+
+(*.   => ( raise SyntaxError("Lexical operation failed");); *)

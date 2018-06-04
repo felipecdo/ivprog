@@ -1,11 +1,17 @@
-Library 
-  structure IvProgLexer
-  functor IvProgParseFn
-  structure IvProgTest
+Library
+  structure IVProgLexer
+  structure IVProgTokens
+  structure IVProgTester
+  structure Ast
+  structure BooleanConverter
 is
   $/basis.cm
-  $SMLNJ-LIB/Util/smlnj-lib.cm
-
+  $/smlnj-lib.cm
+  $/ml-lpt-lib.cm
   ivprog.grm : ml-antlr
   ivprog.lex : ml-ulex
-  ivprog-test.sml
+  int_map.sml
+  ast.sml
+  boolean_converter.sml
+  ivprog_test.sml
+  exceptions.sml

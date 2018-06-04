@@ -5,6 +5,7 @@ Library
 is
   $/basis.cm
   $SMLNJ-LIB/Util/smlnj-lib.cm
+  $/ml-lpt-lib.cm
 
   calc.grm : ml-antlr
   calc.lex : ml-ulex

@@ -1,46 +1,56 @@
-%name IvProgLexer;
-%let digit = [0-9];
-%let alpha = [a-zA-Z];
-%let characters = ".*";
-%let boolean = verdadeiro|falso;
-(*number*)
-%let natural = {digit}+;
-%let integer = [(\-)]{natural};
-%let real = {integer}\.{natural};
-%let number = {integer}|{real};
-(*id*)
-%let identifier = (_|{alpha})(_|{alpha}|{digit});
-(*operators*)
-%let binary_boolean_operator = T.AND|T.OR;
-%let unary_boolean_operator = T.NOT;
-%let relational_operator = T.GREATER|T.LOWER|T.GE|T.LE|T.NEQ|T.EQ;
-%let arithmetic_operator = T.PLUS|T.MINUS|T.TIMES|T.DIV|T.MOD;
-%let boolean_operator = {relational_operator}|{binary_boolean_operator};
-(*other rules*)
-%let data_type = inteiro|real|booleano|texto;
-%let literal = {number}|{identifier}|{boolean}|{characters}|vazio;
-%defs (
-structure T = IvProgTokens
-type lex_result = T.token
-fun eof() = T.EOF
-);
-"==" => ( T.EQ );
-"<>" => ( T.NEQ );
-"+" => ( T.PLUS );
-"-" => ( T.MINUS );
-"*" => ( T.TIMES );
-"/" => ( T.DIV );
-"%" => ( T.MOD );
-">" => ( T.GREATER );
-"<" => ( T.LOWER );
-">=" => ( T.GE );
-"<=" => ( T.LE );
-"e" => ( T.AND );
-"ou" => ( T.OR );
-"nao" => ( T.NOT );
-"(" => ( T.LP );
-")" => ( T.RP );
-" " | \n | \t
-=> ( continue() );
-. => ( print "Error during lexical process" );
+(* Missing check *)
+%name IVProgLexer;
 
+%let digit = [0-9];
+%let int = {digit}+;(* Ainda nao suporta negativo *)
+%let real = {int}"."{digit}+;(* Ainda nao suporta negativo *)
+%let letter = [a-zA-Z];
+%let id = (_|{letter})(_|{letter}|{digit})*;
+%let relational_op = ("<" | ">" | "<=" | ">=" | "==" | "<>")+;
+%let arithmetic_op = ("+" | "-" | "/" | "*" | "%")+;
+%let binary_boolean_op = ("AND" | "OR" | {relational_op})+;
+%let unary_boolean_op = ("NOT")+;
+%let data_type = "inteiro"|"real"|"booleano"|"texto";
+%let boolean = "verdadeiro"|"falso";
+%let characters = """[a-zA-Z0-9]""";(* Incluir outros chars *)
+%let literal = {int}|{id}|{boolean}|{characters}|"vazio";
+
+%states CON_STRING;
+
+%defs (
+  structure T = IVProgTokens
+  type lex_result = T.token
+  fun eof() = T.EOF
+  val stringbuf = ref "";
+);
+(* <start state list> regular expression => ( code ); *)
+<INITIAL> bloco => ( T.KW_bloco );
+<INITIAL> se => ( T.KW_if );
+<INITIAL> senao => ( T.KW_else );
+
+<INITIAL> enquanto => ( T.KW_while );
+<INITIAL> para => ( T.KW_for );
+<INITIAL> de => ( T.KW_from );
+<INITIAL> ate => ( T.KW_until );
+
+<INITIAL> {id} => ( T.ID yytext );
+
+<INITIAL> {relational_op} => ( T.RELATIONAL_OP yytext );
+<INITIAL> {arithmetic_op} => ( T.ARITHMETIC_OP yytext );
+<INITIAL> {binary_boolean_op} => ( T.BI_BOOLEAN_OP yytext );
+<INITIAL> {unary_boolean_op} => ( T.UN_BOOLEAN_OP yytext );
+
+<INITIAL> {int} => ( T.CON_int (valOf (Int.fromString yytext)) );
+<INITIAL> {real} => ( T.CON_real (valOf (Real.fromString yytext)) );
+(* Não funciona e nao tenho ideia do motivo *)
+(* <INITIAL> {boolean} => ( T.CON_boolean (valOf (BooleanConverter.fromString yytext)) ); *)
+
+<INITIAL> "(" => ( T.LP );
+<INITIAL> ")" => ( T.RP );
+<INITIAL> "{" => ( T.LC );
+<INITIAL> "}" => ( T.RC );
+<INITIAL> ";" => ( T.SEMI );
+<INITIAL> " " | \n | \t => ( continue() );
+<INITIAL> "\"" => ( YYBEGIN(CON_STRING); stringbuf := ""; continue() );
+<CON_STRING> "\"" => ( YYBEGIN(INITIAL); T.CON_string(!stringbuf) );
+<CON_STRING> [^"]* => ( stringbuf := (!stringbuf ^ yytext); continue() );

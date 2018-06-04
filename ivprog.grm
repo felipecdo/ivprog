@@ -1,33 +1,25 @@
-%name IvProg;
+%name IVProg;
+
+%defs (
+  structure A = Ast
+);
+
 %tokens
-: KW_let ("let") | KW_in ("in")
-| ID of string | NUM of Int.int
-| EQ ("=") | PLUS ("+")
-| TIMES ("*") | MINUS ("-")
-| LP ("(") | RP (")")
-;
-exp(env)
-: "let" ID "=" exp@(env)
-"in" exp@(AtomMap.insert(env, Atom.atom ID, exp1))
-=> ( exp2 )
-| addExp@(env)
-;
-addExp(env)
-: multExp@(env) ("+" multExp@(env))*
-=> ( List.foldr op+ 0 (multExp::SR) )
-;
-multExp(env)
-: prefixExp@(env) ("*" prefixExp@(env))*
-=> ( List.foldr op* 1 (prefixExp::SR) )
-;
-prefixExp(env)
-: atomicExp@(env)
-| "-" prefixExp@(env)
-=> ( prefixExp )
-;
-atomicExp(env)
-: ID
-=> ( valOf(AtomMap.find (env, Atom.atom ID)) )
-| NUM
-| "(" exp@(env) ")"
-;
+  : KW_bloco ("bloco")
+  | KW_if ("se") | KW_else ("senao")
+  | CON_int of Int.int | CON_string of string | CON_real of Real.real 
+  | CON_boolean of Bool.bool
+  | ID of string | RELATIONAL_OP of string
+  | ARITHMETIC_OP of string | BI_BOOLEAN_OP of string | UN_BOOLEAN_OP of string
+  | LP ("(") | RP (")") | SEMI (";")
+  | LC ("{") | RC ("}")
+  | KW_while ("enquanto") 
+  | KW_for ("para") | KW_from ("de") | KW_until ("ate")
+  ;
+
+%start block;
+
+block
+  : CON_string => ( A.StringConstant(CON_string) )
+  | LP RP => ( A.Unit )
+  ;

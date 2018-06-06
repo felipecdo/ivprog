@@ -15,11 +15,40 @@
   | LC ("{") | RC ("}")
   | KW_while ("enquanto") 
   | KW_for ("para") | KW_from ("de") | KW_until ("ate")
+  | KW_null("vazio")
   ;
 
 %start block;
 
 block
-  : CON_string => ( A.StringConstant(CON_string) )
+  : expression
   | LP RP => ( A.Unit )
+  ;
+
+expression
+  : literal
+  | operation
+  | "("expression")"
+  ;
+  
+operation
+  : bool_operation
+  | arithmetic_operation
+  ;
+
+bool_operation
+  : expression RELATIONAL_OP expression
+  | expression BI_BOOLEAN_OP expression
+  | expression UN_BOOLEAN_OP expression
+  ;
+
+arithmetic_operation
+  : expression ARITHMETIC_OP expression
+  ;
+
+literal
+  : CON_int => ( A.IntConstant(CON_int) )
+  | CON_string => ( A.StringConstant(CON_string) )
+  | CON_real => ( A.RealConstant(CON_real) )
+  | KW_null => ( A.Unit )
   ;

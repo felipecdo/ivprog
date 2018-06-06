@@ -12,8 +12,8 @@
 %let unary_boolean_op = ("NOT")+;
 %let data_type = "inteiro"|"real"|"booleano"|"texto";
 %let boolean = "verdadeiro"|"falso";
-%let characters = """[a-zA-Z0-9]""";(* Incluir outros chars *)
-%let literal = {int}|{id}|{boolean}|{characters}|"vazio";
+%let characters = """[a-zA-Z]*"""; (* Excluir aspas daqui *)
+%let null = "vazio";
 
 %states CON_STRING;
 
@@ -24,6 +24,7 @@
   val stringbuf = ref "";
 );
 (* <start state list> regular expression => ( code ); *)
+<INITIAL> vazio => ( T.KW_null );
 <INITIAL> bloco => ( T.KW_bloco );
 <INITIAL> se => ( T.KW_if );
 <INITIAL> senao => ( T.KW_else );

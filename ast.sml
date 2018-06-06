@@ -11,6 +11,7 @@ Ast = struct
   datatype Exp =
       IntConstant of int
     | StringConstant of string
+    | RealConstant of real
     | Unit
     | Variable of Symbol ref
     | App of Exp * Exp
@@ -52,6 +53,7 @@ Ast = struct
     ;
 
   fun eq(IntConstant(l1), IntConstant(r1)) = l1 = r1
+    | eq(RealConstant(l1), RealConstant(r1)) = Real.==(l1, r1)
     | eq(StringConstant(l1), StringConstant(r1)) = l1 = r1
     | eq(Unit, Unit) = true
     | eq(Tuple(l), Tuple(r)) = listeq eq (l, r)
@@ -131,6 +133,7 @@ Ast = struct
     let
       fun precedence(someExp: Exp): int = case someExp of
           IntConstant _ =>    1
+        | RealConstant _ =>   1
         | StringConstant _ => 1
         | Unit =>             1
         | Variable _ =>       1
@@ -150,6 +153,7 @@ Ast = struct
     in
       case exp of
         IntConstant(v) => Int.toString v
+      | RealConstant(v) => Real.toString v
       | StringConstant(v) => "\"" ^ v ^ "\""
       | Unit => "()"
       | Tuple(l) => "(" ^ (toString_list "," parenthise l) ^ ")"

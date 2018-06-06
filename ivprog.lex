@@ -10,9 +10,7 @@
 %let arithmetic_op = ("+" | "-" | "/" | "*" | "%")+;
 %let binary_boolean_op = ("AND" | "OR" | {relational_op})+;
 %let unary_boolean_op = ("NOT")+;
-%let data_type = "inteiro"|"real"|"booleano"|"texto";
 %let boolean = "verdadeiro"|"falso";
-%let characters = """[a-zA-Z]*"""; (* Excluir aspas daqui *)
 %let null = "vazio";
 
 %states CON_STRING;
@@ -28,6 +26,13 @@
 <INITIAL> bloco => ( T.KW_bloco );
 <INITIAL> se => ( T.KW_if );
 <INITIAL> senao => ( T.KW_else );
+
+<INITIAL> inteiro => ( T.KW_int );
+<INITIAL> real => ( T.KW_real );
+<INITIAL> texto => ( T.KW_texto );
+<INITIAL> booleano => ( T.KW_booleano );
+<INITIAL> retorna => ( T.KW_return );
+
 
 <INITIAL> enquanto => ( T.KW_while );
 <INITIAL> para => ( T.KW_for );
@@ -51,6 +56,7 @@
 <INITIAL> "{" => ( T.LC );
 <INITIAL> "}" => ( T.RC );
 <INITIAL> ";" => ( T.SEMI );
+<INITIAL> "," => ( T.COMMA );
 <INITIAL> " " | \n | \t => ( continue() );
 <INITIAL> "\"" => ( YYBEGIN(CON_STRING); stringbuf := ""; continue() );
 <CON_STRING> "\"" => ( YYBEGIN(INITIAL); T.CON_string(!stringbuf) );

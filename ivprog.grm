@@ -9,17 +9,16 @@
   | KW_if ("se") | KW_else ("senao")
   | CON_int of Int.int | CON_string of string | CON_real of Real.real 
   | CON_boolean of Bool.bool
-  | ID of string
+  | ID of string | RELATIONAL_OP of string
+  | ARITHMETIC_OP of string | BI_BOOLEAN_OP of string | UN_BOOLEAN_OP of string
   | LP ("(") | RP (")") | SEMI (";")
   | LC ("{") | RC ("}")
   | COMMA (",")
   | KW_while ("enquanto") 
   | KW_for ("para") | KW_from ("de") | KW_until ("ate")
+  | KW_null("vazio")
   | KW_int("inteiro") | KW_real("real") | KW_texto("texto") | KW_booleano("booleano")
   | KW_return("retorna")
-  | KW_plus("+") | KW_minus("-") | KW_times("*") | KW_div("/") | KW_mod("%")
-  | KW_and("e") | KW_or("ou") | KW_not("nao")
-  | KW_gt(">") | KW_lt("<") | KW_equal("==") | KW_diff("<>") | KW_gte(">=") | KW_lte("<=")
   ;
 
 %start block;
@@ -29,11 +28,11 @@ block
   ;
 
 procedure
-  : KW_bloco ID LP formalparams? RP LC command+ RC
+  : KW_bloco ID formalparams LC command+ RC
   ;
 
 function
-  : KW_bloco data_type ID LP formalparams? RP LC command+ RC
+  : KW_bloco data_type ID formalparams LC command+ RC
   ;
 
 command
@@ -41,8 +40,13 @@ command
   ;
 
 formalparams
-  : data_type ID COMMA formalparams
-  | data_type ID
+  : LP RP => ([])
+  | LP formal_params_list RP => (formal_params_list)
+  ;
+
+formal_params_list
+  : data_type ID COMMA formal_params_list => ((data_type,ID)::formal_params_list)
+  | data_type ID => ([(data_type,ID)])
   ;
 
 data_type
@@ -53,43 +57,35 @@ data_type
  ;
 
 expression
-  : additive_expression
-  | bool_operation
-  | ID actualparams
+  : literal
+  | operation
+  | ID LP actualparams? RP
+  | LP expression RP
   ;
 
 actualparams
-  : LP (expression (COMMA actualparams)*)? RP 
+  : expression COMMA actualparams
+  | expression
   ;
-
-relational_operator
-  : KW_gt | KW_lt | KW_equal | KW_diff | KW_gte | KW_lte
+  
+operation
+  : bool_operation
+  | arithmetic_operation
   ;
 
 bool_operation
-  : additive_expression relational_operator additive_expression
-  | bool_operation (KW_and | KW_or) bool_operation
-  | KW_not bool_operation
-  | CON_boolean
+  : expression RELATIONAL_OP expression
+  | expression BI_BOOLEAN_OP expression
+  | UN_BOOLEAN_OP expression
   ;
 
+arithmetic_operation
+  : expression ARITHMETIC_OP expression
+  ;
 
 literal
   : CON_int => ( A.IntConstant(CON_int) )
   | CON_string => ( A.StringConstant(CON_string) )
   | CON_real => ( A.RealConstant(CON_real) )
+  | KW_null => ( A.Unit )
   ;
-
-additive_expression
- : multiplicative_expression (( KW_plus |  KW_minus ) multiplicative_expression)*
- ;
-
-multiplicative_expression
- : primary_expression (( KW_times | KW_div | KW_mod ) primary_expression)*
- ;
-
-primary_expression
- : ID
- | literal
- | LP expression RP
- ;

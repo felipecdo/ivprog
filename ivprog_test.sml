@@ -19,14 +19,14 @@ structure IVProgTester =
         dowork(initial_strm)
       end
 
-    fun string_to_ast(inputString: string): Ast.Exp =
+    fun string_to_ast(inputString: string) =
       let
         val strm = IVProgLexer.streamifyInstream (TextIO.openString inputString)
         val lexer = IVProgLexer.lex (AntlrStreamPos.mkSourcemap())
         val (r, strm', errs) = IP.parse lexer strm
       in
         (case r
-          of SOME(exp) => exp
+          of SOME(lista) => lista
           |  _ => raise Exceptions.ParseError ("parse error on " ^ inputString))
       end
   end

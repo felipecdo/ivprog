@@ -1,0 +1,98 @@
+%name Muml;
+
+%defs (
+  structure A = Ast
+);
+
+%tokens
+  : KW_let ("let") | KW_in ("in") | KW_end ("end")
+  | KW_fn ("fn") | KW_fun ("fun") | KW_val ("val")
+  | KW_if ("if") | KW_then ("then") | KW_else ("else")
+  | KW_andalso ("andalso") | KW_orelse ("orelse")
+  | CON_int of Int.int | CON_string of string
+  | ID of string | OP of string
+  | LP ("(") | RP (")") | COMMA (",") | SEMI (";")| COLON (":")
+  | LB ("[") | RB ("]")
+  | ARROW ("=>") | TARROW ("->")
+  ;
+
+%start exp;
+
+exp
+  : %try blockExp SEMI expsequence => ( A.Sequence(blockExp :: expsequence) )
+  | %try blockExp
+  ;
+
+expsequence
+  : %try blockExp SEMI expsequence => ( blockExp :: expsequence )
+  | %try blockExp => ( [blockExp] )
+  ;
+
+blockExp
+  : KW_fn fnArgs ARROW blockExp => ( A.Fn(fnArgs, blockExp) )
+  | KW_if opExp KW_then opExp KW_else opExp => ( A.IfThenElse(opExp1, opExp2, opExp3) )
+  | opExp
+  ;
+
+opExp
+  : %try appExps OP opExp => ( A.InfixApp(appExps, OP, opExp) )
+  | %try appExps
+  ;
+
+appExps
+  : simpleExp+ =>
+    (
+      let
+        fun apps(result, nil) = result
+          | apps(result, hd :: tl) = A.App(apps(hd, tl), result)
+
+        val simpleExpRev = List.rev simpleExp
+      in
+        apps(List.hd simpleExpRev, List.tl simpleExpRev)
+      end
+    )
+  ;
+
+simpleExp
+  : CON_int => ( A.IntConstant(CON_int) )
+  | CON_string => ( A.StringConstant(CON_string) )
+  | ID => ( A.Variable(ref (A.create_symbol ID)) )
+  | KW_let declist KW_in exp KW_end => ( A.LetIn(declist, exp) )
+  | %try LP exp RP => ( exp )
+  | %try LP exp COMMA explist RP => ( A.Tuple(exp :: explist) )
+  | LP RP => ( A.Unit )
+  ;
+
+explist
+  : %try exp COMMA explist => ( exp :: explist )
+  | %try exp => ( [exp] )
+  ;
+
+fnArgs
+  : LP RP => ( [] )
+  | LP arglist RP => ( arglist )
+  | ID => ( [A.Name(ref (A.create_symbol ID))] )
+  ;
+
+arglist
+  : %try ID COMMA arglist => ( A.Name(ref (A.create_symbol ID)) :: arglist )
+  | %try ID => ( [A.Name(ref (A.create_symbol ID))] )
+  ;
+
+declist
+  : %try dec SEMI declist => ( dec :: declist )
+  | %try dec => ( [dec] )
+  ;
+
+dec
+  : KW_val valdec
+  | KW_fun fundec
+  ;
+
+valdec
+  : ID OP exp %where ( OP = "=" ) => ( A.Valdec(A.Name(ref (A.create_symbol ID)), false, exp) )
+  ;
+
+fundec
+  : ID fnArgs OP exp %where ( OP = "=" ) => ( A.Valdec(A.Name(ref (A.create_symbol ID)), true, A.Fn(fnArgs, exp)) )
+  ;

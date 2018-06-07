@@ -21,66 +21,60 @@
   | KW_return("retorna")
   ;
 
-%start block;
+%start program;
+
+program
+  : block+ => (block)
+  ;
 
 block
-  : (procedure | function) block? 
+  : %try procedure => (procedure)
+  | %try function => (function)
   ;
 
 procedure
-  : KW_bloco ID formalparams LC command+ RC
+  : KW_bloco ID formalparams LC command+ RC => (A.create_procedure(ID, formalparams, command))
   ;
 
 function
-  : KW_bloco data_type ID formalparams LC command+ RC
+  : KW_bloco data_type ID formalparams LC command+ RC => (A.create_function(ID, data_type, formalparams, command))
   ;
 
 command
-  : KW_return expression SEMI
+  : KW_return expression SEMI => (A.Return(expression))
   ;
 
 formalparams
-  : LP RP => ([])
-  | LP formal_params_list RP => (formal_params_list)
+  : %try LP RP => ([])
+  | %try LP formal_params_list RP => (formal_params_list)
   ;
 
 formal_params_list
-  : data_type ID COMMA formal_params_list => ((data_type,ID)::formal_params_list)
-  | data_type ID => ([(data_type,ID)])
+  : %try data_type ID COMMA formal_params_list => (A.as_formal_param(data_type,ID)::formal_params_list)
+  | %try data_type ID => ([A.as_formal_param(data_type,ID)])
   ;
 
 data_type
- : KW_int
- | KW_real
- | KW_texto
- | KW_booleano
+ : KW_int => (A.KInt)
+ | KW_real => (A.KReal)
+ | KW_texto => (A.KText)
+ | KW_booleano => (A.KBool)
  ;
 
-expression
-  : literal
-  | operation
-  | ID LP actualparams? RP
-  | LP expression RP
+actualparams
+  : LP RP => ([])
+  | LP actual_params_list RP => (actual_params_list)
   ;
 
-actualparams
-  : expression COMMA actualparams
-  | expression
+actual_params_list
+  : %try expression COMMA actual_params_list => (expression :: actual_params_list)
+  | %try expression => ([expression])
   ;
   
-operation
-  : bool_operation
-  | arithmetic_operation
-  ;
-
-bool_operation
-  : expression RELATIONAL_OP expression
-  | expression BI_BOOLEAN_OP expression
-  | UN_BOOLEAN_OP expression
-  ;
-
-arithmetic_operation
-  : expression ARITHMETIC_OP expression
+expression
+  : literal => (literal)
+  | ID actualparams => (A.CallFunc(ID, actualparams))
+  | LP expression RP => (expression)
   ;
 
 literal

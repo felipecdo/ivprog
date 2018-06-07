@@ -21,15 +21,18 @@ Ast = struct
     | App of Exp * Exp
     | InfixApp of Exp * string * Exp
     | CallFunc of string * Exp list
+    | Neg of Exp
     ;
 
   datatype Commands = 
       Return of Exp
     | Attrib of string * Exp
+    | Decl of string * Type * Exp
     | CallProc of string * Exp list
     | IfThenElse of Exp * Commands list * Commands list
     | While of Exp * Commands list
-    | For of string * Exp * Exp * Commands list
+    | For of string * int * int * Commands list
+    | Skip
     ;
 
   datatype Block = 

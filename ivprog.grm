@@ -10,13 +10,12 @@
   | CON_int of Int.int | CON_string of string | CON_real of Real.real 
   | CON_boolean of Bool.bool
   | ID of string | RELATIONAL_OP of string
-  | ARITHMETIC_OP of string | BI_BOOLEAN_OP of string | UN_BOOLEAN_OP of string
+  | SUM_OP of string | MULTI_OP of string | Not("nao")
   | LP ("(") | RP (")") | SEMI (";")
   | LC ("{") | RC ("}")
-  | COMMA (",")
+  | COMMA (",") | EQ("=")
   | KW_while ("enquanto") 
   | KW_for ("para") | KW_from ("de") | KW_until ("ate")
-  | KW_null("vazio")
   | KW_int("inteiro") | KW_real("real") | KW_texto("texto") | KW_booleano("booleano")
   | KW_return("retorna")
   ;
@@ -42,7 +41,23 @@ function
 
 command
   : KW_return expression SEMI => (A.Return(expression))
+  | KW_while LP expression RP "{" command+ "}" => (A.While(expression,command))
+  | conditional
+  | %try laco_para => (laco_para)
+  | %try ID actualparams SEMI => (A.CallProc(ID, actualparams))
+  | %try data_type ID EQ expression SEMI => (A.Decl(ID,data_type,expression))
+  | %try ID EQ expression SEMI => (A.Attrib(ID,expression))
   ;
+
+conditional
+  : %try KW_if LP expression RP "{" command+ "}" => (A.IfThenElse(expression,command,[A.Skip]))
+  | %try KW_if LP expression RP "{" command+ "}" KW_else conditional => (A.IfThenElse(expression,command,[conditional]))
+  | %try KW_if LP expression RP "{" command+ "}" KW_else "{" command+ "}" => (A.IfThenElse(expression,command1,command2))
+  ;
+
+laco_para
+ : KW_for ID KW_from CON_int KW_until CON_int "{" command+ "}" => (A.For(ID,CON_int1,CON_int2,command))
+ ;
 
 formalparams
   : %try LP RP => ([])
@@ -70,16 +85,28 @@ actual_params_list
   : %try expression COMMA actual_params_list => (expression :: actual_params_list)
   | %try expression => ([expression])
   ;
-  
+
 expression
-  : literal => (literal)
-  | ID actualparams => (A.CallFunc(ID, actualparams))
-  | LP expression RP => (expression)
+  : %try sum RELATIONAL_OP sum => (A.InfixApp(sum1,RELATIONAL_OP,sum2))
+  | %try sum
   ;
 
-literal
-  : CON_int => ( A.IntConstant(CON_int) )
-  | CON_string => ( A.StringConstant(CON_string) )
+sum
+  : sum SUM_OP term => (A.InfixApp(sum,SUM_OP,term))
+  | term
+  ;
+
+term
+  : %try factor MULTI_OP factor => (A.InfixApp(factor1,MULTI_OP,factor2))
+  | %try factor
+  ;
+
+factor
+  : ID => (A.Variable(ID))
+  | CON_int => ( A.IntConstant(CON_int) )
   | CON_real => ( A.RealConstant(CON_real) )
-  | KW_null => ( A.Unit )
+  | CON_string => (A.StringConstant(CON_string))
+  | ID actualparams => (A.CallFunc(ID, actualparams))
+  | LP expression RP => (expression)
+  | Not factor => (A.Neg factor)
   ;

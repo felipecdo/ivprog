@@ -92,8 +92,8 @@ expression
   ;
 
 sum
-  : sum SUM_OP term => (A.InfixApp(sum,SUM_OP,term))
-  | term
+  : %try term SUM_OP term => (A.InfixApp(term1,SUM_OP,term2))
+  | %try term
   ;
 
 term
@@ -102,11 +102,11 @@ term
   ;
 
 factor
-  : ID => (A.Variable(ID))
-  | CON_int => ( A.IntConstant(CON_int) )
-  | CON_real => ( A.RealConstant(CON_real) )
-  | CON_string => (A.StringConstant(CON_string))
-  | ID actualparams => (A.CallFunc(ID, actualparams))
+  : %try CON_int => ( A.IntConstant(CON_int) )
+  | %try CON_real => ( A.RealConstant(CON_real) )
+  | %try CON_string => (A.StringConstant(CON_string))
+  | %try ID => (A.Variable(ID))
+  | %try ID actualparams => (A.CallFunc(ID, actualparams))
   | LP expression RP => (expression)
   | Not factor => (A.Neg factor)
   ;

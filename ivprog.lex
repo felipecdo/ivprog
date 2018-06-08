@@ -15,6 +15,7 @@
 
 %defs (
   structure T = IVProgTokens
+  structure BoolConv = BooleanConverter
   type lex_result = T.token
   fun eof() = T.EOF
   val stringbuf = ref "";
@@ -46,7 +47,7 @@
 <INITIAL> {int} => ( T.CON_int (valOf (Int.fromString yytext)) );
 <INITIAL> {real} => ( T.CON_real (valOf (Real.fromString yytext)) );
 (* Não funciona e nao tenho ideia do motivo *)
-(* <INITIAL> {boolean} => ( T.CON_boolean (valOf (BooleanConverter.fromString yytext)) ); *)
+<INITIAL> {boolean} => ( T.CON_boolean (valOf (BoolConv.fromString yytext)) );
 
 <INITIAL> "(" => ( T.LP );
 <INITIAL> ")" => ( T.RP );

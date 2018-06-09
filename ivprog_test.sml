@@ -2,6 +2,8 @@ structure IVProgTester =
   struct
     structure IP = IVProgParseFn(IVProgLexer)
 
+    exception Erro
+
     fun string_to_tokens(inputString: string): IVProgTokens.token list =
       let
         val initial_strm = IVProgLexer.streamifyInstream (TextIO.openString inputString)
@@ -43,7 +45,7 @@ structure IVProgTester =
       in
         case r of
           SOME(env) => IVProgProcessor.inicializa(env)
-          | NONE => print "Deu merda"
+          | NONE => raise Erro
       end
 
   end

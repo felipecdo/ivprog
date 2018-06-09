@@ -11,7 +11,7 @@ Ast = struct
     | KUnit
     ;
 
-  type FormalParams = {tipo: Type, id:string}
+  type a = Type * string
 
   datatype Exp =
       IntConstant of int
@@ -20,7 +20,6 @@ Ast = struct
     | BoolConstant of bool
     | Unit
     | Variable of string
-    | App of Exp * Exp
     | InfixApp of Exp * string * Exp
     | CallFunc of string * Exp list
     | Neg of Exp
@@ -39,22 +38,29 @@ Ast = struct
     ;
 
   datatype Block = 
-      Function of string * Type * FormalParams list * Commands list
-    | Procedure of string * FormalParams list * Commands list
+      Function of string * Type * a list * Commands list
+    | Procedure of string * a list * Commands list
     ;
 
   datatype BlockEnv =  Env of Block StringMap.map ref
 
-  fun as_formal_param(t:Type, identificador:string) = {tipo = t, id = identificador}
+  fun typeToString ktype = case ktype of
+    KInt => "inteiro"
+    | KReal => "real"
+    | KBool => "booleano"
+    | KText => "texto"
+    | KUnit => "undefined"
 
-  fun create_procedure(id:string,lista:FormalParams list,comandos: Commands list) = 
+  fun as_formal_param(t:Type, identificador:string) = (t, identificador)
+
+  fun create_procedure(id:string,lista: a list,comandos: Commands list) = 
     let
       val bloco = Procedure(id,lista,comandos)
     in
       (id,bloco)
     end
 
-  fun create_function(id:string, tipo:Type, lista:FormalParams list, comandos: Commands list) = 
+  fun create_function(id:string, tipo:Type, lista: a list, comandos: Commands list) = 
     let
       val bloco = Function(id, tipo, lista, comandos)
     in

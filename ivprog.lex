@@ -38,8 +38,6 @@
 <INITIAL> ate => ( T.KW_until );
 <INITIAL> nao => ( T.Not );
 
-<INITIAL> {id} => ( T.ID yytext );
-
 <INITIAL> {relational_op} => ( T.RELATIONAL_OP yytext );
 <INITIAL> {sum_op} => ( T.SUM_OP yytext );
 <INITIAL> {multi_op} => ( T.MULTI_OP yytext );
@@ -48,6 +46,7 @@
 <INITIAL> {real} => ( T.CON_real (valOf (Real.fromString yytext)) );
 (* Não funciona e nao tenho ideia do motivo *)
 <INITIAL> {boolean} => ( T.CON_boolean (valOf (BoolConv.fromString yytext)) );
+<INITIAL> {id} => ( T.ID yytext );
 
 <INITIAL> "(" => ( T.LP );
 <INITIAL> ")" => ( T.RP );

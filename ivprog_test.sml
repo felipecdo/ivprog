@@ -41,10 +41,9 @@ structure IVProgTester =
         val lexer = IVProgLexer.lex (sm)
         val (r, strm', errs) = IP.parse lexer strm
       in
-        print (String.concatWith "\n"
-          (List.map (AntlrRepair.repairToString tok2s sm)
-            errs));
-        r
+        case r of
+          SOME(env) => IVProgProcessor.inicializa(env)
+          | NONE => print "Deu merda"
       end
 
   end

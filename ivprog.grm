@@ -23,7 +23,11 @@
 %start program;
 
 program
-  : block+ => (block)
+  : block+ => (let
+    val env = A.empty_env()
+  in
+    A.convert_env(env,block)
+  end)
   ;
 
 block

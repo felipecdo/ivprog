@@ -1,6 +1,8 @@
 structure
 Ast = struct
 
+  exception UndefinedBlock
+
   datatype Type =
       KInt
     | KReal
@@ -33,12 +35,15 @@ Ast = struct
     | While of Exp * Commands list
     | For of string * int * int * Commands list
     | Skip
+    | LgCall of string
     ;
 
   datatype Block = 
       Function of string * Type * FormalParams list * Commands list
     | Procedure of string * FormalParams list * Commands list
     ;
+
+  datatype BlockEnv =  Env of Block StringMap.map ref
 
   fun as_formal_param(t:Type, identificador:string) = {tipo = t, id = identificador}
 
@@ -51,9 +56,22 @@ Ast = struct
 
   fun create_function(id:string, tipo:Type, lista:FormalParams list, comandos: Commands list) = 
     let
-      val bloco = Function(id,tipo,lista,comandos)
+      val bloco = Function(id, tipo, lista, comandos)
     in
       (id,bloco)
     end
+
+  fun empty_env() = Env(ref StringMap.empty)
+
+  fun convert_env(Env(m), []) = Env(m)
+    | convert_env(Env(m), (id,bloco)::tl) = let
+      val _ = m :=StringMap.insert((!m),id,bloco)
+    in
+      convert_env(Env(m),tl)
+    end
+
+  fun applyEnv(Env(m), id) = case StringMap.find((!m),id) of
+      SOME(bloco) => bloco
+    | NONE => raise UndefinedBlock
   
 end

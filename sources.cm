@@ -2,8 +2,10 @@ Library
   structure IVProgLexer
   structure IVProgTokens
   structure IVProgTester
+  structure Store
   structure Ast
   structure BooleanConverter
+  structure IVProgProcessor
 is
   $/basis.cm
   $/smlnj-lib.cm
@@ -11,7 +13,10 @@ is
   ivprog.grm : ml-antlr
   ivprog.lex : ml-ulex
   int_map.sml
+  string_map.sml
+  store.sml
   ast.sml
   boolean_converter.sml
+  ivprogprocessor.sml
   ivprog_test.sml
   exceptions.sml

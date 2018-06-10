@@ -220,7 +220,7 @@ structure IVProgProcessor = struct
 			val canReturn = Store.eq(Store.applyStore(sto,"$type"), Store.SVTexto("function"))
 
 		in
-			if canReturn then (Store.setReturned(sto,true);(Store.updateStore(sto,"$",vl), env)) else
+			if canReturn then (Store.updateStore(Store.setReturned(sto,true),"$",vl), env) else
 				raise ProcedureReturn("O bloco não espera por um retorno.")
 		end
 

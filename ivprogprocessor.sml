@@ -188,8 +188,8 @@ structure IVProgProcessor = struct
 		end
 
 	and executa_comandos(hd::tl,(sto,env)) = let
-			val (Store.State(_,b),_) = executa_comando(hd,(sto,env))
-		in if b then (sto,env) else executa_comandos(tl,(sto,env)) end
+			val (Store.State(m,b),_) = executa_comando(hd,(sto,env))
+		in if b then (Store.State(m,b),env) else executa_comandos(tl,(sto,env)) end
 		| executa_comandos([],(sto,env)) = (sto,env)
 
 	and executa_comando(_,(Store.State(m,true), env)) = (Store.State(m,true), env)

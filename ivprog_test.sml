@@ -48,4 +48,21 @@ structure IVProgTester =
           | NONE => raise Erro
       end
 
+    fun file_to_tokens(inputString: string): IVProgTokens.token list =
+      let
+        val initial_strm = IVProgLexer.streamifyInstream (TextIO.openIn inputString)
+        val lexer = IVProgLexer.lex (AntlrStreamPos.mkSourcemap())
+        fun dowork(strm) =  
+          let
+            val lex_result = lexer strm
+            val next_token = #1 lex_result
+          in
+            if IVProgTokens.isEOF next_token
+            then []
+            else next_token :: dowork(#3 lex_result)
+          end
+      in
+        dowork(initial_strm)
+      end
+
   end

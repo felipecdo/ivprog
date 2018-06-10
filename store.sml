@@ -16,37 +16,37 @@ struct
 
 	fun empty() = State(ref StringMap.empty,false)
 
-	fun applyStore(State(m,b), id) = case (StringMap.find((!m), id)) of
+	and applyStore(State(m,b), id) = case (StringMap.find((!m), id)) of
 			SOME(vl) => vl
-		|	NONE => raise VariableNotDeclared("Variável não declarada: " ^ id)
+		|	NONE => (print(id);raise VariableNotDeclared("Variável não declarada: " ^ id))
 
-	fun updateStore(State(m,b), id, vl) = let 
+	and updateStore(State(m,b), id, vl) = let 
 		val _ = m := StringMap.insert((!m), id, vl)
 	in
 		State(m,b)
 	end
 
-	fun setReturned(State(m,b), vl) = State(m, vl)
+	and setReturned(State(m,b), vl) = State(m, vl)
 
-	fun isDeclared(State(m,b), id) = case StringMap.find((!m), id) of
+	and isDeclared(State(m,b), id) = case StringMap.find((!m), id) of
 			SOME(vl) => true
 		|	NONE => false
 		
-	fun checkType(ktype:A.Type, vl:StoreSV) = case (vl, ktype) of
+	and checkType(ktype:A.Type, vl:StoreSV) = case (vl, ktype) of
 				(SVInt _, KInt) => true
 			|	(SVReal _, KReal) => true
 			|	(SVTexto _, KText) => true
 			|	(SVBool _, KBool) => true
 			| (_ , _) => false
 
-	fun checkTypeInStore(state:Store, ktype:A.Type, id:string) =
+	and checkTypeInStore(state:Store, ktype:A.Type, id:string) =
 		let
 			val vl = applyStore(state, id)
 			val res = checkType(ktype,vl)
 		in res
 	end
 
-	fun cmpStoreType(state,id, vl) = case (applyStore(state,id),vl) of
+	and cmpStoreType(state,id, vl) = case (applyStore(state,id),vl) of
 		(SVInt _, SVInt _) => true
 		| (SVReal _, SVReal _) => true
 		| (SVTexto _, SVTexto _) => true
@@ -54,17 +54,24 @@ struct
 		| (_ , _) => false
 	
 
-	fun typeToString stype = case stype of
+	and typeToString stype = case stype of
     SVInt _ => "inteiro"
     | SVReal _ => "real"
     | SVBool _ => "booleano"
     | SVTexto _ => "texto"
     | Undefined => "undefined"
+
+  and toString stype = case stype of
+    SVInt a => "inteiro:"^Int.toString(a)
+    | SVReal a => "real:"^Real.toString(a)
+    | SVBool a => "booleano:"^Bool.toString(a)
+    | SVTexto a => "texto:"^a
+    | Undefined => "undefined"
    
 
-  fun eq(SVInt(a), SVInt(b)) = a = b
+  and eq(SVInt(a), SVInt(b)) = a = b
   	| eq(SVReal(a), SVReal(b)) = Real.==(a,b)
-  	| eq(SVTexto(a), SVTexto(b)) = a = b
+  	| eq(SVTexto(a), SVTexto(b)) = String.compare(a,b) = EQUAL
   	| eq(SVBool(a),SVBool(b)) = a = b
   	| eq(_ , _) = false
 end

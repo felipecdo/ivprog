@@ -36,12 +36,11 @@ structure IVProgProcessor = struct
 		end
 		| avalia_expressao(Ast.CallFunc(id, exp), (sto,env)) = let
 			val abst = Ast.applyEnv(env,id)
-			val novoSto = Store.empty()
 		in
 			case abst of
 				Ast.Procedure(_,_,_) => raise ProcedureAsExpression("O bloco "^id^" não retorna um valor.")
 				| Ast.Function(_,ktipo,pfs,cs) => let
-					val (sto1,_)  = chama_funcao(cs,ktipo,pfs,exp, (novoSto,env))
+					val (sto1,_)  = chama_funcao(cs,ktipo,pfs,exp, (sto,env))
 				in
 					Store.applyStore(sto1,"$")
 				end
@@ -54,7 +53,13 @@ structure IVProgProcessor = struct
 				(Store.SVInt(a),Store.SVInt(b)) => Store.SVInt(a+b)
 				| (Store.SVReal(a),Store.SVReal(b)) => Store.SVReal(a+b)
 				| (Store.SVTexto(a),Store.SVTexto(b)) => Store.SVTexto(a^b)
-				| (_,_) => raise IncompatibleType("Operação '+' inválida")
+				| (_,_) => let
+					val tex1 = Store.toString(vl1)
+					val tex2 = Store.toString(vl2)
+					val _ = print(tex1^tex2)
+				in
+					raise IncompatibleType("Operação '+' inválida")
+				end 
 		end
 		| avalia_expressao(Ast.InfixApp(e0,"-",e1), (sto,env)) = let
 			val vl1 = avalia_expressao(e0,(sto,env))
@@ -136,7 +141,14 @@ structure IVProgProcessor = struct
 			case (vl1,vl2) of
 				(Store.SVInt(a),Store.SVInt(b)) => Store.SVBool(Store.eq(vl1,vl2))
 				| (Store.SVReal(a),Store.SVReal(b)) => Store.SVBool(Store.eq(vl1,vl2))
-				| (_,_) => raise IncompatibleType("Operação '==' inválida")
+				| (Store.SVTexto(a),Store.SVTexto(b)) => Store.SVBool(Store.eq(vl1,vl2))
+				| (_,_) => let
+					val tex1 = Store.toString(vl1)
+					val tex2 = Store.toString(vl2)
+					val _ = print(tex1^tex2)
+				in
+					raise IncompatibleType("Operação '==' inválida")
+				end
 		end
 		| avalia_expressao(Ast.InfixApp(e0,"<>",e1), (sto,env)) = let
 			val vl1 = avalia_expressao(e0,(sto,env))
@@ -165,13 +177,13 @@ structure IVProgProcessor = struct
 		end
 		| avalia_expressao(_, (sto,env)) = raise InternalError
 
-	and associa_params([],[],(sto,env)) = sto
-		| associa_params([],hd::tl,(sto,env)) = raise UnboundParameters "Quatidade de paramêtros não correspondem"
-		| associa_params(hd::tl,[],(sto,env)) = raise UnboundParameters "Quatidade de paramêtros não correspondem"
-		| associa_params( (tipo,id)::pfs,exp::pas,(sto,env)) = let
-			val vl = avalia_expressao(exp,(sto,env))
+	and associa_params([],[],novo, (old,env)) = novo
+		| associa_params([],hd::tl,novo, (old,env)) = raise UnboundParameters "Quatidade de paramêtros não correspondem"
+		| associa_params(hd::tl,[],novo, (old,env)) = raise UnboundParameters "Quatidade de paramêtros não correspondem"
+		| associa_params( (tipo,id)::pfs, exp::pas, novo, (old,env)) = let
+			val vl = avalia_expressao(exp,(old,env))
 		in
-			if Store.checkType(tipo,vl) then Store.updateStore(sto,id,vl) else 
+			if Store.checkType(tipo,vl) then Store.updateStore(novo,id,vl) else 
 				raise IncompatibleType ("Tipo do paramêtro diferente do esperado. Esperado: "^Ast.typeToString(tipo)^" Informado: "^Store.typeToString(vl))
 		end
 
@@ -180,17 +192,17 @@ structure IVProgProcessor = struct
 		in if b then (sto,env) else executa_comandos(tl,(sto,env)) end
 		| executa_comandos([],(sto,env)) = (sto,env)
 
-	and executa_comando(Ast.CallProc(id, pas), (sto,env)) = let
+	and executa_comando(_,(Store.State(m,true), env)) = (Store.State(m,true), env)
+		| executa_comando(Ast.CallProc(id, pas), (sto,env)) = let
 			val abst = Ast.applyEnv(env,id)
-			val novoSto = Store.empty()
 		in case (abst) of
 			Ast.Procedure(_,pfs,cs) => let
-				val _ = chama_procedure(cs,pfs,pas,(novoSto,env))
+				val _ = chama_procedure(cs,pfs,pas,(sto,env))
 			in
 				(sto,env)
 			end 
 			| Ast.Function(_,ktipo,pfs,cs) => let
-				val _ = chama_funcao(cs,ktipo,pfs,pas,(novoSto,env))
+				val _ = chama_funcao(cs,ktipo,pfs,pas,(sto,env))
 			in
 				(sto,env)
 			end 
@@ -206,8 +218,9 @@ structure IVProgProcessor = struct
 		| executa_comando(Ast.Return(exp), (sto,env)) = let
 			val vl = avalia_expressao(exp, (sto,env))
 			val canReturn = Store.eq(Store.applyStore(sto,"$type"), Store.SVTexto("function"))
+
 		in
-			if canReturn then (Store.updateStore(sto,"$",vl), env) else
+			if canReturn then (Store.setReturned(sto,true);(Store.updateStore(sto,"$",vl), env)) else
 				raise ProcedureReturn("O bloco não espera por um retorno.")
 		end
 
@@ -253,17 +266,23 @@ structure IVProgProcessor = struct
 				SOME(Store.SVBool a) => if a then executa_comando(Ast.While(exp,cs),executa_comandos(cs,(sto,env))) else (sto,env)
 				| NONE => raise IncompatibleType("O comando condicional espera como paramêtro uma expressão lógica, diferente da que foi informada")
 		end
+		| executa_comando(Ast.LangCall("imprimir"),(sto,env)) = let
+			val vl = Store.applyStore(sto,"p1");
+			val _ = print(Store.toString(vl)^"\n")
+		in
+			(sto,env)
+		end
 
 	and chama_procedure(comandos,pfs,pas,(sto,env)) = let
-		val _ = associa_params(pfs,pas,(sto,env))
-		val _ = Store.updateStore(sto,"$type",Store.SVTexto("procedure"))
-	in executa_comandos(comandos,(sto,env)) end
+		val sto1 = associa_params(pfs,pas,Store.empty(), (sto,env))
+		val _ = Store.updateStore(sto1,"$type",Store.SVTexto("procedure"))
+	in executa_comandos(comandos,(sto1,env)) end
 
 	and chama_funcao(comandos, ktipo, pfs,pas,(sto,env)) = let
-		val _ = associa_params(pfs,pas,(sto,env))
-		val _ = Store.updateStore(sto,"$type",Store.SVTexto("function"))
-		val (sto1,_) = executa_comandos(comandos,(sto,env))
-	in if Store.checkTypeInStore(sto,ktipo, "$") then (sto1,env) else 
+		val sto1 = associa_params(pfs,pas,Store.empty(), (sto,env))
+		val _ = Store.updateStore(sto1,"$type",Store.SVTexto("function"))
+		val _ = executa_comandos(comandos,(sto1,env))
+	in if Store.checkTypeInStore(sto1,ktipo, "$") then (sto1,env) else 
 		raise IncompatibleType ("Tipo do retorno não compatível com o declarado. Declarado: "^Ast.typeToString(ktipo)^" Informado: "^Store.typeToString(Store.applyStore(sto1,"$"))) end
 
 end

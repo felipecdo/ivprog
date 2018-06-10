@@ -34,7 +34,7 @@ Ast = struct
     | While of Exp * Commands list
     | For of string * int * int * Commands list
     | Skip
-    | LgCall of string
+    | LangCall of string
     ;
 
   datatype Block = 
@@ -67,7 +67,13 @@ Ast = struct
       (id,bloco)
     end
 
-  fun empty_env() = Env(ref StringMap.empty)
+  fun empty_env() = let
+    val imprimir = Procedure("escreva",[(KUnit,"p1")],[LangCall("imprimir")])
+    val m = ref StringMap.empty
+    val _ = m :=StringMap.insert((!m),"escreva",imprimir)
+  in
+    Env(m)
+  end 
 
   fun convert_env(Env(m), []) = Env(m)
     | convert_env(Env(m), (id,bloco)::tl) = let

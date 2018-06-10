@@ -17,10 +17,10 @@ bloco principal(){
 
     se (b1 e b2) {
     	nome = "Joana";
-    	idades = idades + qualIdade(nome);
+    	idades = idades + qualIdade(2);
     } senao {
     	nome = "Joaquina";
-    	idades = idades + qualIdade(nome);
+    	idades = idades + qualIdade(3);
     }
 
     b1 = falso;
@@ -28,7 +28,7 @@ bloco principal(){
 
     se (b1 ou b2) {
     	nome = "Maria";
-    	idades = idades + qualIdade(nome);
+    	idades = idades + qualIdade(1);
     }
 }
 
@@ -36,18 +36,15 @@ bloco imprimirIdades(int idades) {
 	idades = idades + 1;
 }
 
-bloco inteiro qualIdade(texto nome) {
+bloco inteiro qualIdade(inteiro name) {
 	
-	se (nome == "Maria") {
-		retorna 50;
-	}
-
-	se (nome == "Joana") {
-		retorna 40;
-	}
-
-	se (nome == "Joaquina") {
-		retorna 60;
-	}
+    escreva(name);
+    inteiro i = 0;
+	enquanto(i <= 5){
+        escreva(i);
+        i = i + 1;
+        retorna 50;
+    }
+    retorna 1;
 	
 }

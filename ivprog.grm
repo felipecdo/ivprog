@@ -4,6 +4,7 @@
   structure A = Ast
 );
 
+
 %tokens
   : KW_bloco ("bloco")
   | KW_if ("se") | KW_else ("senao")
@@ -19,6 +20,7 @@
   | KW_int("inteiro") | KW_real("real") | KW_texto("texto") | KW_booleano("booleano")
   | KW_return("retorna")
   ;
+
 
 %start program;
 
@@ -44,13 +46,13 @@ function
   ;
 
 command
-  : KW_return expression SEMI => (A.Return(expression))
+  : KW_return expression SEMI? => (A.Return(expression))
   | KW_while LP expression RP "{" command+ "}" => (A.While(expression,command))
   | conditional => (conditional)
-  | %try KW_for ID KW_from CON_int KW_until CON_int "{" command+ "}" => (A.For(ID,CON_int1,CON_int2,command))
-  | %try ID actualparams SEMI => (A.CallProc(ID, actualparams))
-  | %try data_type ID EQ expression SEMI => (A.Decl(ID,data_type,expression))
-  | %try ID EQ expression SEMI => (A.Attrib(ID,expression))
+  | KW_for ID KW_from expression KW_until expression "{" command+ "}" => (A.For(ID,expression1,expression2,command))
+  | %try ID actualparams SEMI? => (A.CallProc(ID, actualparams))
+  | data_type ID EQ expression SEMI? => (A.Decl(ID,data_type,expression))
+  | %try ID EQ expression SEMI? => (A.Attrib(ID,expression))
   ;
 
 conditional

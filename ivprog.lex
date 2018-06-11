@@ -42,7 +42,9 @@
 <INITIAL> {sum_op} => ( T.SUM_OP yytext );
 <INITIAL> {multi_op} => ( T.MULTI_OP yytext );
 
+<INITIAL> -{int} => ( T.CON_int((valOf (Int.fromString yytext))) );
 <INITIAL> {int} => ( T.CON_int (valOf (Int.fromString yytext)) );
+<INITIAL> -{real} => ( T.CON_real (valOf (Real.fromString yytext)) );
 <INITIAL> {real} => ( T.CON_real (valOf (Real.fromString yytext)) );
 (* Não funciona e nao tenho ideia do motivo *)
 <INITIAL> {boolean} => ( T.CON_boolean (valOf (BoolConv.fromString yytext)) );
@@ -55,7 +57,7 @@
 <INITIAL> ";" => ( T.SEMI );
 <INITIAL> "," => ( T.COMMA );
 <INITIAL> "=" => ( T.EQ );
-<INITIAL> " " | \n | \t => ( continue() );
+<INITIAL> " " | \n | \t => ( skip() );
 <INITIAL> "\"" => ( YYBEGIN(CON_STRING); stringbuf := ""; continue() );
 <CON_STRING> "\"" => ( YYBEGIN(INITIAL); T.CON_string(!stringbuf) );
 <CON_STRING> [^"]* => ( stringbuf := (!stringbuf ^ yytext); continue() );

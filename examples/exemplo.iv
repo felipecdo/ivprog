@@ -7,13 +7,15 @@ bloco principal(){
     texto nome = "Maria";
     inteiro idades = 0;
 
-    numero2 = 80;
+    numero2 = -80;
 
     se (numero < numero2) {
     	valor = 1000.0;
     } senao {
-    	valor = 2000.0;
+    	valor = -2000.0;
     }
+
+    escreva("O valor eh:" + como_texto(valor))
 
     se (b1 e b2) {
     	nome = "Joana";
@@ -30,30 +32,17 @@ bloco principal(){
     	nome = "Maria";
     	idades = idades + qualIdade(1);
     }
+    escreva(qualIdade(0)+qualIdade(0));
 }
 
 bloco imprimirIdades(int idades) {
 	idades = idades + 1;
 }
 
+
 bloco inteiro qualIdade(inteiro name) {
 	
-    escreva(name);
-    inteiro i = 0;
-	se (name == 1) {
-        escreva("retorna 20");
-        i = 20;
-    } senao se(name == 2) {
-        escreva("retorna 30");
-        i = 30;
-    } senao se(name == 3) {
-        escreva("retorna 50");
-        i = 50;
-    } senao {
-        escreva("retorna 1");
-        i = 1;
-    }
-
+    inteiro i = 20;
     retorna i;
 	
 }

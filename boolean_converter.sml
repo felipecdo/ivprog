@@ -1,4 +1,9 @@
 structure BooleanConverter = struct
   (* melhorar estas condições *)  
-  fun fromString(s) = if s = "verdadeiro" then SOME(true) else SOME(false)
+  fun fromString "verdadeiro" = SOME(true)
+  	| fromString "falso" = SOME(false)
+  	| fromString _ = NONE
+
+  fun toString true = "verdadeiro"
+  	| toString false = "falso"
 end

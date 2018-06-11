@@ -8,7 +8,7 @@ bloco principal(){
     texto nome = "Maria";
     
     escreva("Teste: O texto abaixo deveria ser: Meu Texto -50");
-    procedureReal("Meu Texto", valorNegativo);
+    chamaProcedure("Meu Texto", valorNegativo);
 
     executaOperacoes();
     
@@ -34,11 +34,11 @@ bloco principal(){
 
 bloco testaSeCompleto() {
     escreva("Teste: O texto abaixo deveria ser: Menor que 1");
-	testaSe(0)
+	testaSe(0);
     escreva("Teste: O texto abaixo deveria ser: Menor que 5");
-    testaSe(1)
+    testaSe(1);
     escreva("Teste: O texto abaixo deveria ser: Maior igual a 5");
-    testaSe(10)
+    testaSe(10);
 }
 
 bloco testaSe(inteiro numero) {
@@ -64,11 +64,11 @@ bloco testaFibonnaci() {
 }
 
 bloco chamaProcedure(texto meuTexto , real valor) {
-	escreva(meuTexto + valor);
+	escreva(meuTexto + como_texto(valor));
 }
 
 bloco executaOperacoes() {
-    inteiro doisInteiro = 2
+    inteiro doisInteiro = 2;
     escreva("Teste: O texto abaixo deveria ser: 3");
     escreva(1 + doisInteiro);
     escreva("Teste: O texto abaixo deveria ser: -1");
@@ -94,7 +94,7 @@ bloco executaOperacoes() {
     escreva("Teste: O texto abaixo deveria ser: verdadeiro");
     escreva(2 <= doisInteiro);
 
-    real doisReal = 2
+    real doisReal = 2.0;
     escreva("Teste: O texto abaixo deveria ser: 3.0");
     escreva(1.0 + doisReal);
     escreva("Teste: O texto abaixo deveria ser: -1.0");
@@ -103,8 +103,6 @@ bloco executaOperacoes() {
     escreva(3.0 * doisReal);
     escreva("Teste: O texto abaixo deveria ser: 1.5");
     escreva(3.0 / doisReal);
-    escreva("Teste: O texto abaixo deveria ser: 1.0");
-    escreva(5.0 % doisReal);
     escreva("Teste: O texto abaixo deveria ser: falso");
     escreva(5.0 == doisReal);
     escreva("Teste: O texto abaixo deveria ser: verdadeiro");
@@ -137,7 +135,7 @@ bloco inteiro naoExecutaAposRetorno() {
     retorna 2;
 }
 
-bloco inteiro fibonacci_recursivo(inteiro n){
+bloco inteiro fibonacci_recursivo(inteiro n) {
     se (n < 2){
         retorna n;
     } senao {
@@ -169,7 +167,7 @@ bloco inteiro fibonacci_while(inteiro n){
     inteiro anterior = 0;
     inteiro novo = 0;
     inteiro i = 2;
-    while(i < n ) {
+    enquanto(i < n ) {
         novo = atual + anterior;
         anterior = atual;
         atual = novo;

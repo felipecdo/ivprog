@@ -45,7 +45,10 @@ structure IVProgTester =
       in
         case r of
           SOME(env) => IVProgProcessor.inicializa(env)
-          | NONE => raise Erro
+          | NONE => (print(String.concatWith "\n"
+          (List.map (AntlrRepair.repairToString tok2s sm)
+            errs));
+            raise Erro )
       end
 
     fun file_to_tokens(inputString: string): IVProgTokens.token list =

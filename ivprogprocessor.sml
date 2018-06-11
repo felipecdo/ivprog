@@ -133,7 +133,7 @@ structure IVProgProcessor = struct
 			case (vl1,vl2) of
 				(Store.SVInt(a),Store.SVInt(b)) => Store.SVBool(a<=b)
 				| (Store.SVReal(a),Store.SVReal(b)) => Store.SVBool(a<=b)
-				| (_,_) => raise IncompatibleType("Operação '>=' inválida")
+				| (_,_) => raise IncompatibleType("Operação '<=' inválida")
 		end
 		| avalia_expressao(Ast.InfixApp(e0,"==",e1), (sto,env)) = let
 			val vl1 = avalia_expressao(e0,(sto,env))
@@ -246,15 +246,22 @@ structure IVProgProcessor = struct
 		end
 
 		| executa_comando(Ast.For(id,a,b,comandos), (sto,env)) = let
-			val attrib = Ast.Attrib(id,Ast.IntConstant(a))
-			val inc = if a > b then 1 else ~1
-			val attribInc = Ast.Attrib(id, Ast.InfixApp(Ast.Variable(id), "+" , Ast.IntConstant(inc)))
-			val compOp = if inc = 1 then "<=" else ">="
-			val condWhile = Ast.InfixApp(Ast.Variable(id), compOp, Ast.IntConstant(b))
-			val cWhile = Ast.While(condWhile,attribInc::comandos)
+			val v1 = avalia_expressao(a,(sto,env))
+			val v2 = avalia_expressao(b,(sto,env))
+			val isOk = Store.checkType(Ast.KInt,v1) andalso Store.checkType(Ast.KInt, v2)
+		in if isOk then let
+			val attrib = Ast.Attrib(id,Store.toAst(v1))
+			val inc = if Store.gt(v1,v2) then "-" else "+"
+			val attribInc = Ast.Attrib(id, Ast.InfixApp(Ast.Variable(id), inc , Ast.IntConstant(1)))
+			val compOp = if Store.gt(v1,v2) then ">=" else "<="
+			val condWhile = Ast.InfixApp(Ast.Variable(id), compOp, Store.toAst(v2))
+			val cWhile = Ast.While(condWhile,comandos@[attribInc])
 			val novaLista = [attrib,cWhile]
 		in
 			executa_comandos(novaLista,(sto,env))
+		end
+		else raise IncompatibleType("Expressão da estrutura _para_de_ate_ não produz um inteiro")
+			
 		end
 
 		| executa_comando(Ast.While(exp,cs),(sto,env)) = let
@@ -272,6 +279,70 @@ structure IVProgProcessor = struct
 			val _ = print(Store.toString(vl)^"\n")
 		in
 			(sto,env)
+		end
+		| executa_comando(Ast.LangCall("leia"),(sto,env)) = let
+			val vl = TextIO.inputLine(TextIO.stdIn)
+		in case vl of
+			SOME(s) => let
+				val _ = Store.updateStore(sto,"$",Store.SVTexto(s))
+			in
+				(sto,env)
+			end
+			| NONE => let
+				val _ = Store.updateStore(sto,"$",Store.SVTexto(""))
+			in
+				(sto,env)
+			end 
+		end
+		| executa_comando(Ast.LangCall("como_inteiro"),(sto,env)) = let
+			val vl = Store.applyStore(sto,"p1");
+		in case vl of
+			  Store.SVReal(v) => let
+			  	val _ = Store.updateStore(sto,"$",Store.SVInt(Real.floor(v)))
+			  in
+			  	(sto,env)
+			  end
+			| Store.SVTexto(v) => (case Int.fromString(v) of
+				SOME(i) => let
+					val _ = Store.updateStore(sto,"$",Store.SVInt(i))
+				in
+					(sto,env)
+				end
+				| NONE => raise IncompatibleType("Texto incompatível para conversão para o tipo inteiro."))
+			| _ => raise IncompatibleType("Tipo incompatível para conversão para o tipo inteiro.")
+		end
+		| executa_comando(Ast.LangCall("como_real"),(sto,env)) = let
+			val vl = Store.applyStore(sto,"p1");
+		in case vl of
+			  Store.SVInt(v) => let
+			  	val _ = Store.updateStore(sto,"$",Store.SVReal(Real.fromInt(v)))
+			  in
+			  	(sto,env)
+			  end
+			| Store.SVTexto(v) => (case Real.fromString(v) of
+				SOME(i) => let
+					val _ = Store.updateStore(sto,"$",Store.SVReal(i))
+				in
+					(sto,env)
+				end
+				| NONE => raise IncompatibleType("Texto incompatível para conversão para o tipo real."))
+			| _ => raise IncompatibleType("Tipo incompatível para conversão para o tipo real.")
+		end
+		| executa_comando(Ast.LangCall("como_booleano"),(sto,env)) = let
+			val vl = Store.applyStore(sto,"p1");
+		in case vl of
+			  Store.SVTexto(v) => (case BooleanConverter.fromString(v) of
+			  	SOME(b) => (Store.updateStore(sto,"$",Store.SVBool(b));(sto,env))
+			  	| NONE => raise IncompatibleType("Texto incompatível para conversão para o tipo booleano."))
+			| _ => raise IncompatibleType("Tipo incompatível para conversão para o tipo booleano.")
+		end
+		| executa_comando(Ast.LangCall("como_texto"),(sto,env)) = let
+			val vl = Store.applyStore(sto,"p1");
+		in case vl of
+			  Store.SVInt(v) => (Store.updateStore(sto,"$",Store.SVTexto(Int.toString(v)));(sto,env))
+			| Store.SVReal(v) => (Store.updateStore(sto,"$",Store.SVTexto(Real.toString(v)));(sto,env))
+			| Store.SVBool(v) => (Store.updateStore(sto,"$",Store.SVTexto(BooleanConverter.toString(v)));(sto,env))
+			| _ => raise IncompatibleType("Tipo incompatível para conversão para o tipo booleano.")
 		end
 
 	and chama_procedure(comandos,pfs,pas,(sto,env)) = let

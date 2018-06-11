@@ -73,4 +73,26 @@ struct
   	| eq(SVTexto(a), SVTexto(b)) = String.compare(a,b) = EQUAL
   	| eq(SVBool(a),SVBool(b)) = a = b
   	| eq(_ , _) = false
+
+  and asInt(SVInt(a)) = SOME(a)
+  	| asInt(_) = NONE
+
+  and asReal(SVReal(a)) = SOME(a)
+  	| asReal(_) = NONE
+
+  and asTexto(SVTexto(a)) = SOME(a)
+  	| asTexto(_) = NONE
+
+  and asBool(SVBool(a)) = SOME(a)
+  	| asBool(_) = NONE
+
+  and toAst(SVInt(a)) = A.IntConstant(a)
+  	| toAst(SVReal(a)) = A.RealConstant(a)
+  	| toAst(SVBool(a)) = A.BoolConstant(a)
+  	| toAst(SVTexto(a)) = A.StringConstant(a)
+  	| toAst(Undefined ) = A.Unit
+
+  and gt(SVInt(a), SVInt(b)) = a > b
+  	| gt(SVReal(a), SVReal(b)) = a>b
+  	| gt(_ , _) = false
 end

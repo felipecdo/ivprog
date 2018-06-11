@@ -32,7 +32,7 @@ Ast = struct
     | CallProc of string * Exp list
     | IfThenElse of Exp * Commands list * Commands list
     | While of Exp * Commands list
-    | For of string * int * int * Commands list
+    | For of string * Exp * Exp * Commands list
     | Skip
     | LangCall of string
     ;
@@ -69,8 +69,18 @@ Ast = struct
 
   fun empty_env() = let
     val imprimir = Procedure("escreva",[(KUnit,"p1")],[LangCall("imprimir")])
+    val ler = Function("leia",KText,[],[LangCall("leia")])
+    val asInt = Function("como_inteiro",KInt,[(KUnit,"p1")],[LangCall("como_inteiro")])
+    val asReal = Function("como_real",KReal,[(KUnit,"p1")],[LangCall("como_real")])
+    val asBool = Function("como_booleano",KBool,[(KUnit,"p1")],[LangCall("como_booleano")])
+    val asText = Function("como_texto",KText,[(KUnit,"p1")],[LangCall("como_texto")])
+    val lista = [("escreva",imprimir),("leia",ler),("como_inteiro",asInt),
+      ("como_real",asReal),("como_booleano",asBool),("como_texto",asText)
+      ]
     val mLang = ref StringMap.empty
-    val _ = mLang :=StringMap.insert((!mLang),"escreva",imprimir)
+    fun addToEnv((id,bloco)) = mLang := StringMap.insert((!mLang),id,bloco)
+    val _ = List.map addToEnv lista
+
   in
     Env((ref StringMap.empty), mLang)
   end 
@@ -86,6 +96,6 @@ Ast = struct
       SOME(bloco) => bloco
     | NONE => case StringMap.find((!ml), id) of
       SOME(lang) => lang
-      | NONE => raise UndefinedBlock
+      | NONE => (print(id);raise UndefinedBlock)
   
 end

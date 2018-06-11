@@ -7,6 +7,7 @@ structure IVProgProcessor = struct
 	exception UnboundParameters of string
 	exception IncompatibleType of string
 	exception UndeclaredVariable of string
+	exception AlreadyDeclaredVariable of string
 
 	fun inicializa(env:Ast.BlockEnv) = 
 		let
@@ -187,9 +188,9 @@ structure IVProgProcessor = struct
 				raise IncompatibleType ("Tipo do paramêtro diferente do esperado. Esperado: "^Ast.typeToString(tipo)^" Informado: "^Store.typeToString(vl))
 		end
 
-	and executa_comandos(hd::tl,(sto,env)) = let
-			val (Store.State(m,b),_) = executa_comando(hd,(sto,env))
-		in if b then (Store.State(m,b),env) else executa_comandos(tl,(sto,env)) end
+	and executa_comandos(c::cs,(sto,env)) = let
+			val (Store.State(m,b),_) = executa_comando(c,(sto,env))
+		in if b then (Store.State(m,b),env) else executa_comandos(cs,(sto,env)) end
 		| executa_comandos([],(sto,env)) = (sto,env)
 
 	and executa_comando(_,(Store.State(m,true), env)) = (Store.State(m,true), env)
@@ -229,7 +230,7 @@ structure IVProgProcessor = struct
 			val exists = Store.isDeclared(sto, id)
 		in
 			if (Store.checkType(ktipo,vl) andalso not exists) then (Store.updateStore(sto,id,vl), env) else
-				raise UndeclaredVariable("Variável "^id^"já definida ou tipo atribuído incompatível.")
+				raise AlreadyDeclaredVariable("Variável "^id^"já definida ou tipo atribuído incompatível.")
 		end
 
 		| executa_comando(Ast.Skip, (sto,env)) = (sto,env)

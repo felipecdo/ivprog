@@ -42,7 +42,7 @@ Ast = struct
     | Procedure of string * a list * Commands list
     ;
 
-  datatype BlockEnv =  Env of Block StringMap.map ref
+  datatype BlockEnv =  Env of Block StringMap.map ref * Block StringMap.map ref
 
   fun typeToString ktype = case ktype of
     KInt => "inteiro"
@@ -69,21 +69,23 @@ Ast = struct
 
   fun empty_env() = let
     val imprimir = Procedure("escreva",[(KUnit,"p1")],[LangCall("imprimir")])
-    val m = ref StringMap.empty
-    val _ = m :=StringMap.insert((!m),"escreva",imprimir)
+    val mLang = ref StringMap.empty
+    val _ = mLang :=StringMap.insert((!mLang),"escreva",imprimir)
   in
-    Env(m)
+    Env((ref StringMap.empty), mLang)
   end 
 
-  fun convert_env(Env(m), []) = Env(m)
-    | convert_env(Env(m), (id,bloco)::tl) = let
+  fun convert_env(Env(m,ml), []) = Env(m,ml)
+    | convert_env(Env(m,ml), (id,bloco)::tl) = let
       val _ = m :=StringMap.insert((!m),id,bloco)
     in
-      convert_env(Env(m),tl)
+      convert_env(Env(m,ml),tl)
     end
 
-  fun applyEnv(Env(m), id) = case StringMap.find((!m),id) of
+  fun applyEnv(Env(m,ml), id) = case StringMap.find((!m),id) of
       SOME(bloco) => bloco
-    | NONE => raise UndefinedBlock
+    | NONE => case StringMap.find((!ml), id) of
+      SOME(lang) => lang
+      | NONE => raise UndefinedBlock
   
 end

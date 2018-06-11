@@ -32,19 +32,18 @@ struct
 			SOME(vl) => true
 		|	NONE => false
 		
-	and checkType(ktype:A.Type, vl:StoreSV) = case (vl, ktype) of
-				(SVInt _, KInt) => true
-			|	(SVReal _, KReal) => true
-			|	(SVTexto _, KText) => true
-			|	(SVBool _, KBool) => true
-			| (_ , _) => false
+	and checkType(A.KInt, SVInt(a)) = true
+		| checkType(A.KReal, SVReal(a)) = true
+		| checkType(A.KBool, SVBool(a)) = true
+		| checkType(A.KText, SVTexto(a)) = true
+		| checkType(A.KUnit, _) = true
+		| checkType(_, _) = false
 
 	and checkTypeInStore(state:Store, ktype:A.Type, id:string) =
 		let
 			val vl = applyStore(state, id)
-			val res = checkType(ktype,vl)
-		in res
-	end
+		in checkType(ktype,vl)
+		end
 
 	and cmpStoreType(state,id, vl) = case (applyStore(state,id),vl) of
 		(SVInt _, SVInt _) => true

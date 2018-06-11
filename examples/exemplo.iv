@@ -40,11 +40,20 @@ bloco inteiro qualIdade(inteiro name) {
 	
     escreva(name);
     inteiro i = 0;
-	enquanto(i <= 5){
-        escreva(i);
-        i = i + 1;
-        retorna 50;
+	se (name == 1) {
+        escreva("retorna 20");
+        i = 20;
+    } senao se(name == 2) {
+        escreva("retorna 30");
+        i = 30;
+    } senao se(name == 3) {
+        escreva("retorna 50");
+        i = 50;
+    } senao {
+        escreva("retorna 1");
+        i = 1;
     }
-    retorna 1;
+
+    retorna i;
 	
 }

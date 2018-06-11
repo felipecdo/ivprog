@@ -46,22 +46,18 @@ function
 command
   : KW_return expression SEMI => (A.Return(expression))
   | KW_while LP expression RP "{" command+ "}" => (A.While(expression,command))
-  | conditional
-  | %try laco_para => (laco_para)
+  | conditional => (conditional)
+  | %try KW_for ID KW_from CON_int KW_until CON_int "{" command+ "}" => (A.For(ID,CON_int1,CON_int2,command))
   | %try ID actualparams SEMI => (A.CallProc(ID, actualparams))
   | %try data_type ID EQ expression SEMI => (A.Decl(ID,data_type,expression))
   | %try ID EQ expression SEMI => (A.Attrib(ID,expression))
   ;
 
 conditional
-  : %try KW_if LP expression RP "{" command+ "}" => (A.IfThenElse(expression,command,[A.Skip]))
+  : %try KW_if LP expression RP "{" command+ "}" KW_else "{" command+ "}" => (A.IfThenElse(expression,command1,command2))
   | %try KW_if LP expression RP "{" command+ "}" KW_else conditional => (A.IfThenElse(expression,command,[conditional]))
-  | %try KW_if LP expression RP "{" command+ "}" KW_else "{" command+ "}" => (A.IfThenElse(expression,command1,command2))
+  | %try KW_if LP expression RP "{" command+ "}" => (A.IfThenElse(expression,command,[A.Skip]))
   ;
-
-laco_para
- : KW_for ID KW_from CON_int KW_until CON_int "{" command+ "}" => (A.For(ID,CON_int1,CON_int2,command))
- ;
 
 formalparams
   : %try LP RP => ([])
@@ -112,6 +108,6 @@ factor
   | %try CON_boolean => (A.BoolConstant(CON_boolean))
   | %try ID actualparams => (A.CallFunc(ID, actualparams))
   | %try ID => (A.Variable(ID))
-  | LP expression RP => (expression)
-  | Not factor => (A.Neg factor)
+  | %try LP expression RP => (expression)
+  | %try Not factor => (A.Neg factor)
   ;

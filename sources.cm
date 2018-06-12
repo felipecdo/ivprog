@@ -2,6 +2,7 @@ Library
   structure IVProgLexer
   structure IVProgTokens
   structure IVProgTester
+  structure IVProgRunner
   structure Store
   structure Ast
   structure BooleanConverter
@@ -21,5 +22,6 @@ is
   ast.sml
   boolean_converter.sml
   ivprogprocessor.sml
+  ivprog_runner.sml
   ivprog_test.sml
   exceptions.sml

@@ -108,7 +108,7 @@ Ast = struct
     end
   and validate_fun(c::cs) = (case c of
     Return _ => true
-    | IfThenElse(_,_,c2) => validate_fun(c2) andalso validate_fun(cs)
+    | IfThenElse(_,_,c2) => validate_fun(c2) orelse validate_fun(cs)
     | _ => validate_fun(cs))
   | validate_fun([]) = false
 

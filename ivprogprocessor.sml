@@ -28,7 +28,7 @@ structure IVProgProcessor = struct
 		| avalia_expressao(Ast.Unit, (sto,env)) = Store.Undefined
 		| avalia_expressao(Ast.Neg(exp), (sto,env)) = let
 			val vl = avalia_expressao(exp, (sto,env))
-			fun checkBool(sv) = if Store.checkType(Ast.KBool,sv) then SOME(sv) else NONE
+			fun checkBool(sv) = if Store.checkType(Ast.KType(Ast.KBool),sv) then SOME(sv) else NONE
 			val ehBool = checkBool(vl)
 		in
 			case ehBool of
@@ -180,12 +180,12 @@ structure IVProgProcessor = struct
 		| avalia_expressao(_, (sto,env)) = raise InternalError
 
 	and associa_params([],[],novo, (old,env)) = novo
-		| associa_params([],hd::tl,novo, (old,env)) = raise UnboundParameters "Quatidade de paramêtros não correspondem"
-		| associa_params(hd::tl,[],novo, (old,env)) = raise UnboundParameters "Quatidade de paramêtros não correspondem"
+		| associa_params([], hd::tl, novo, (old,env)) = raise UnboundParameters "Quatidade de paramêtros não correspondem"
+		| associa_params(hd::tl, [], novo, (old,env)) = raise UnboundParameters "Quatidade de paramêtros não correspondem"
 		| associa_params( (tipo,id)::pfs, exp::pas, novo, (old,env)) = let
-			val vl = avalia_expressao(exp,(old,env))
+			val vl = avalia_expressao(exp, (old,env))
 		in
-			if Store.checkType(tipo,vl) then Store.updateStore(novo,id,vl) else 
+			if Store.checkType(tipo,vl) then (Store.updateStore(novo,id,vl); associa_params(pfs,pas,novo,(old,env))) else 
 				raise IncompatibleType ("Tipo do paramêtro diferente do esperado. Esperado: "^Ast.typeToString(tipo)^" Informado: "^Store.typeToString(vl))
 		end
 
@@ -237,7 +237,7 @@ structure IVProgProcessor = struct
 		| executa_comando(Ast.Skip, (sto,env)) = (sto,env)
 		| executa_comando(Ast.IfThenElse(exp, c0, c1), (sto,env)) = let
 			val vl = avalia_expressao(exp,(sto,env))
-			fun checkBool(sv) = if Store.checkType(Ast.KBool,sv) then SOME(sv) else NONE
+			fun checkBool(sv) = if Store.checkType(Ast.KType(Ast.KBool),sv) then SOME(sv) else NONE
 			val ehBool = checkBool(vl)
 		in
 			case ehBool of
@@ -249,7 +249,7 @@ structure IVProgProcessor = struct
 		| executa_comando(Ast.For(id,a,b,comandos), (sto,env)) = let
 			val v1 = avalia_expressao(a,(sto,env))
 			val v2 = avalia_expressao(b,(sto,env))
-			val isOk = Store.checkType(Ast.KInt,v1) andalso Store.checkType(Ast.KInt, v2)
+			val isOk = Store.checkType(Ast.KType(Ast.KInt),v1) andalso Store.checkType(Ast.KType(Ast.KInt), v2)
 		in if isOk then let
 			val attrib = Ast.Attrib(id,Store.toAst(v1))
 			val inc = if Store.gt(v1,v2) then "-" else "+"
@@ -267,7 +267,7 @@ structure IVProgProcessor = struct
 
 		| executa_comando(Ast.While(exp,cs),(sto,env)) = let
 			val vl = avalia_expressao(exp,(sto,env))
-			fun checkBool(sv) = if Store.checkType(Ast.KBool,sv) then SOME(sv) else NONE
+			fun checkBool(sv) = if Store.checkType(Ast.KType(Ast.KBool),sv) then SOME(sv) else NONE
 			val ehBool = checkBool(vl)
 		in
 			case ehBool of
@@ -285,7 +285,7 @@ structure IVProgProcessor = struct
 			val vl = TextIO.inputLine(TextIO.stdIn)
 		in case vl of
 			SOME(s) => let
-				val _ = Store.updateStore(sto,"$",Store.SVTexto(s))
+				val _ = Store.updateStore(sto,"$",Store.SVTexto(String.substring(s, 0, size s - 1)))
 			in
 				(sto,env)
 			end

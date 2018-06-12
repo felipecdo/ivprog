@@ -32,12 +32,15 @@ struct
 			SOME(vl) => true
 		|	NONE => false
 		
-	and checkType(A.KInt, SVInt(a)) = true
-		| checkType(A.KReal, SVReal(a)) = true
-		| checkType(A.KBool, SVBool(a)) = true
-		| checkType(A.KText, SVTexto(a)) = true
-		| checkType(A.KUnit, _) = true
+	and checkType(A.KType(A.KInt), SVInt(a)) = true
+		| checkType(A.KType(A.KReal), SVReal(a)) = true
+		| checkType(A.KType(A.KBool), SVBool(a)) = true
+		| checkType(A.KType(A.KText), SVTexto(a)) = true
+		| checkType(A.KUnit(l), sv) = checkTypeList((List.map A.KType l),sv)
 		| checkType(_, _) = false
+
+	and checkTypeList([], _) = false
+		| checkTypeList(hd::tl, sv) = checkType(hd, sv) orelse checkTypeList(tl,sv)
 
 	and checkTypeInStore(state:Store, ktype:A.Type, id:string) =
 		let

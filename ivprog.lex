@@ -46,6 +46,8 @@
 <INITIAL> {int} => ( T.CON_int (valOf (Int.fromString yytext)) );
 <INITIAL> -{real} => ( T.CON_real (valOf (Real.fromString yytext)) );
 <INITIAL> {real} => ( T.CON_real (valOf (Real.fromString yytext)) );
+
+
 (* Não funciona e nao tenho ideia do motivo *)
 <INITIAL> {boolean} => ( T.CON_boolean (valOf (BoolConv.fromString yytext)) );
 <INITIAL> {id} => ( T.ID yytext );

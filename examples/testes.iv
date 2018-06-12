@@ -2,13 +2,13 @@ bloco principal(){
     inteiro numero = 50;
     inteiro numeroNegativo = -10;
     real valor = 10.3;
-    #teste
     real valorNegativo = -10.3;
     booleano b1 = verdadeiro;
     booleano b2 = falso;
     texto nome = "Maria";
     
-    escreva("Teste: O texto abaixo deveria ser: Meu Texto -50");
+    escreva("Teste: O texto abaixo deveria ser: Meu Texto 50");
+    chamaProcedure("Meu texto: ", numero)
 
     executaOperacoes();
     	
@@ -41,7 +41,7 @@ bloco testaSe(inteiro numero) {
 }
 
 bloco chamaProcedure(texto meuTexto , inteiro valor) {
-	escreva(meuTexto);
+  escreva(meuTexto);
   escreva(valor);
 }
 

@@ -79,10 +79,10 @@ formal_params_list
   ;
 
 data_type
- : KW_int => (A.KInt)
- | KW_real => (A.KReal)
- | KW_texto => (A.KText)
- | KW_booleano => (A.KBool)
+ : KW_int => (A.KType(A.KInt))
+ | KW_real => (A.KType(A.KReal))
+ | KW_texto => (A.KType(A.KText))
+ | KW_booleano => (A.KType(A.KBool))
  ;
 
 actualparams
@@ -101,12 +101,12 @@ expression
   ;
 
 sum
-  : %try term SUM_OP term => (A.InfixApp(term1,SUM_OP,term2))
+  : %try term SUM_OP sum => (A.InfixApp(term,SUM_OP,sum))
   | %try term
   ;
 
 term
-  : %try factor MULTI_OP factor => (A.InfixApp(factor1,MULTI_OP,factor2))
+  : %try factor MULTI_OP term => (A.InfixApp(factor,MULTI_OP,term))
   | %try factor
   ;
 

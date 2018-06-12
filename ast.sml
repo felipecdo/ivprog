@@ -5,20 +5,29 @@ Ast = struct
   exception ProcedureReturn of string
   exception FunctionMustReturn of string
 
-  datatype Type =
+  datatype BaseType =
       KInt
     | KReal
     | KText
     | KBool
-    | KUnit
     ;
 
-  fun typeToString ktype = case ktype of
+  datatype Type = 
+    KType of BaseType
+    | KUnit of BaseType list
+    ;
+
+  fun baseTypeToString(bType) = case bType of
     KInt => "inteiro"
     | KReal => "real"
     | KBool => "booleano"
     | KText => "texto"
-    | KUnit => "undefined"
+    ;
+
+  fun typeToString ktype = case ktype of
+    KType(t) => baseTypeToString t
+    | KUnit(l) => List.foldl (fn (a,b) => if b = "" then baseTypeToString(a) else b^", "^baseTypeToString(a)) "" l
+    ;
   
   type a = Type * string
 
@@ -113,12 +122,12 @@ Ast = struct
   | validate_fun([]) = false
 
   fun empty_env() = let
-    val imprimir = Procedure("escreva",[(KUnit,"p1")],[LangCall("imprimir")])
-    val ler = Function("leia",KText,[],[LangCall("leia")])
-    val asInt = Function("como_inteiro",KInt,[(KUnit,"p1")],[LangCall("como_inteiro")])
-    val asReal = Function("como_real",KReal,[(KUnit,"p1")],[LangCall("como_real")])
-    val asBool = Function("como_booleano",KBool,[(KUnit,"p1")],[LangCall("como_booleano")])
-    val asText = Function("como_texto",KText,[(KUnit,"p1")],[LangCall("como_texto")])
+    val imprimir = Procedure("escreva",[(KUnit([KText,KInt,KBool,KReal]),"p1")],[LangCall("imprimir")])
+    val ler = Function("leia",KType(KText),[],[LangCall("leia")])
+    val asInt = Function("como_inteiro",KType(KInt),[(KUnit([KText,KReal]),"p1")],[LangCall("como_inteiro")])
+    val asReal = Function("como_real",KType(KReal),[(KUnit([KText,KInt]),"p1")],[LangCall("como_real")])
+    val asBool = Function("como_booleano",KType(KBool),[(KType(KText),"p1")],[LangCall("como_booleano")])
+    val asText = Function("como_texto",KType(KText),[(KUnit([KInt,KBool,KReal]),"p1")],[LangCall("como_texto")])
     val lista = [("escreva",imprimir),("leia",ler),("como_inteiro",asInt),
       ("como_real",asReal),("como_booleano",asBool),("como_texto",asText)
       ]

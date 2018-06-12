@@ -1,6 +1,6 @@
 bloco principal(){
     inteiro numero = 50;
-    inteiro numeroNegativo = -50;
+    inteiro numeroNegativo = -10;
     real valor = 10.3;
     real valorNegativo = -10.3;
     booleano b1 = verdadeiro;
@@ -8,28 +8,15 @@ bloco principal(){
     texto nome = "Maria";
     
     escreva("Teste: O texto abaixo deveria ser: Meu Texto -50");
-    chamaProcedure("Meu Texto", valorNegativo);
 
     executaOperacoes();
-    
-    escreva("Teste: Nem todo retorno precisa associar variável");
-    funcaoEhMaior(numero, numeroNegativo);
-    
-    boolean resultado = funcaoEhMaior(numero, numeroNegativo);
-	escreva("Teste: O texto abaixo deveria ser: verdadeiro");
-	escreva(resultado);
-
-    resultado = funcaoEhMaiorQueCinco(valorNegativo);
-	escreva("Teste: O texto abaixo deveria ser: falso");
-	escreva(resultado);
-
+    	
     inteiro retorno = naoExecutaAposRetorno();
 	escreva("Teste: O texto abaixo deveria ser: 1");
 	escreva(retorno);
 
     testaSeCompleto();
 
-    testaFibonnaci();
 }
 
 bloco testaSeCompleto() {
@@ -51,20 +38,9 @@ bloco testaSe(inteiro numero) {
     } 
 }
 
-bloco testaFibonnaci() {
-    escreva("Teste: Os 3 textos abaixo deveriam ser: 55");
-    inteiro fibRec = fibonacci_recursivo(10);
-	escreva(fibRec);
-
-    inteiro fibWhile = fibonacci_while(10);
-	escreva(fibWhile);
-
-    inteiro fibFor = fibonacci_for(10);
-	escreva(fibFor);
-}
-
-bloco chamaProcedure(texto meuTexto , real valor) {
-	escreva(meuTexto + como_texto(valor));
+bloco chamaProcedure(texto meuTexto , inteiro valor) {
+	escreva(meuTexto);
+  escreva(valor);
 }
 
 bloco executaOperacoes() {
@@ -123,7 +99,12 @@ bloco executaOperacoes() {
 }
 
 bloco booleano funcaoEhMaior(inteiro n1, inteiro n2) {
-	retorna n1 > n2;
+  escreva("teste");
+  escreva(n1);
+  escreva(n1);
+  booleano x = (n1) >= (n2);
+  escreva(x);
+	retorna x;
 }
 
 bloco booleano funcaoEhMaiorQueCinco(real n1) {
@@ -132,46 +113,5 @@ bloco booleano funcaoEhMaiorQueCinco(real n1) {
 
 bloco inteiro naoExecutaAposRetorno() {
 	retorna 1;
-    retorna 2;
-}
-
-bloco inteiro fibonacci_recursivo(inteiro n) {
-    se (n < 2){
-        retorna n;
-    } senao {
-        retorna fibonacci(n-1) + fibonacci(n-2);
-    }
-}
-
-bloco inteiro fibonacci_for(inteiro n){
-    se (n == 1){
-        retorna 0;
-    }
-    inteiro atual = 1;
-    inteiro anterior = 0;
-    inteiro novo = 0;
-    inteiro i = 0;
-    para i de 2 ate n {
-        novo = atual + anterior;
-        anterior = atual;
-        atual = novo;
-    }
-    retorna atual;
-}
-
-bloco inteiro fibonacci_while(inteiro n){
-    se (n == 1){
-        retorna 0;
-    }
-    inteiro atual = 1;
-    inteiro anterior = 0;
-    inteiro novo = 0;
-    inteiro i = 2;
-    enquanto(i < n ) {
-        novo = atual + anterior;
-        anterior = atual;
-        atual = novo;
-        i = i+1;
-    }
-    retorna atual;
+  retorna 2;
 }

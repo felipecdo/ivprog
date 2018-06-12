@@ -1,16 +1,12 @@
-concatenação usando mais
-chamaProcedure nao esta funcionando
-quando nao associa retorno de funcao
-    escreva("funcaoEhMaiorTeste: Nem todo retorno precisa associar variável");
-    funcaoEhMaior(numero, numeroNegativo);
+concatenação não funcionando
+    bloco chamaProcedure(texto meuTexto , inteiro valor) {
+        escreva("oi");
+        escreva(meuTexto + como_texto(valor));
+    }
+
 quando se chama a funcao com 2 argumentos. Está copiando somente 1 e replicando para todos
-Maior está comparando errado quando é uma variável
     escreva("> Teste: O texto abaixo deveria ser: verdadeiro");
-      boolean resultado = funcaoEhMaior(numero, numeroNegativo);
-    escreva(resultado);
-
-DEve ser poblema semelhante: nao esta declarando variavel
-
-	escreva(">Teste: O texto abaixo deveria ser: falso");
-    resultado = funcaoEhMaiorQueCinco(valorNegativo);
-	escreva(resultado);
+    booleano retorno = funcaoEhMaior(numero, numeroNegativo);
+    escreva(retorno);
+    retorno = funcaoEhMaiorQueCinco(valor);
+    escreva(retorno);

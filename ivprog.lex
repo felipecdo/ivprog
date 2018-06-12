@@ -57,7 +57,8 @@
 <INITIAL> ";" => ( T.SEMI );
 <INITIAL> "," => ( T.COMMA );
 <INITIAL> "=" => ( T.EQ );
-<INITIAL> " " | \n | \t => ( continue() );
+<INITIAL> " " | \r | \n | \t => ( continue() );
+<INITIAL> "#" [^\r\n]* \n => ( skip() );
 <INITIAL> "\"" => ( YYBEGIN(CON_STRING); stringbuf := ""; continue() );
 <CON_STRING> "\"" => ( YYBEGIN(INITIAL); T.CON_string(!stringbuf) );
 <CON_STRING> [^"]* => ( stringbuf := (!stringbuf ^ yytext); continue() );

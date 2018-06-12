@@ -2,6 +2,7 @@ bloco principal(){
     inteiro numero = 50;
     inteiro numeroNegativo = -10;
     real valor = 10.3;
+    #teste
     real valorNegativo = -10.3;
     booleano b1 = verdadeiro;
     booleano b2 = falso;

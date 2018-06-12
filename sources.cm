@@ -6,6 +6,7 @@ Library
   structure Ast
   structure BooleanConverter
   structure IVProgProcessor
+  structure StringMap
 is
   $/basis.cm
   $/smlnj-lib.cm

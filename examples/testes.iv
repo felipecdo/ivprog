@@ -139,7 +139,7 @@ bloco inteiro fibonacci_recursivo(inteiro n) {
     se (n < 2){
         retorna n;
     } senao {
-        retorna fibonacci(n-1) + fibonacci(n-2);
+        retorna fibonacci_recursivo(n - 1) + fibonacci_recursivo(n - 2);
     }
 }
 
@@ -167,7 +167,7 @@ bloco inteiro fibonacci_while(inteiro n){
     inteiro anterior = 0;
     inteiro novo = 0;
     inteiro i = 2;
-    enquanto(i < n ) {
+    enquanto( i < n ) {
         novo = atual + anterior;
         anterior = atual;
         atual = novo;

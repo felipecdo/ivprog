@@ -116,3 +116,58 @@ bloco inteiro naoExecutaAposRetorno() {
 	retorna 1;
   retorna 2;
 }
+
+
+bloco testaFibonnaci() {
+    escreva("Teste: Os 3 textos abaixo deveriam ser: 55");
+    inteiro fibRec = fibonacci_recursivo(10);
+	escreva(fibRec);
+
+    inteiro fibWhile = fibonacci_while(10);
+	escreva(fibWhile);
+
+    inteiro fibFor = fibonacci_for(10);
+	escreva(fibFor);
+}
+
+
+bloco inteiro fibonacci_recursivo(inteiro n) {
+    se (n < 2){
+        retorna n;
+    } senao {
+        retorna fibonacci_recursivo(n - 1) + fibonacci_recursivo(n - 2);
+    }
+}
+
+bloco inteiro fibonacci_for(inteiro n){
+    se (n == 1){
+        retorna 0;
+    }
+    inteiro atual = 1;
+    inteiro anterior = 0;
+    inteiro novo = 0;
+    inteiro i = 0;
+    para i de 2 ate n {
+        novo = atual + anterior;
+        anterior = atual;
+        atual = novo;
+    }
+    retorna atual;
+}
+
+bloco inteiro fibonacci_while(inteiro n){
+    se (n == 1){
+        retorna 0;
+    }
+    inteiro atual = 1;
+    inteiro anterior = 0;
+    inteiro novo = 0;
+    inteiro i = 2;
+    enquanto(i < n ) {
+        novo = atual + anterior;
+        anterior = atual;
+        atual = novo;
+        i = i+1;
+    }
+    retorna atual;
+}

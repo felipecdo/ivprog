@@ -131,11 +131,12 @@ Ast = struct
       SOME(bloco) => bloco
     | NONE => case StringMap.find((!ml), id) of
       SOME(lang) => lang
-      | NONE => (print(id);raise UndefinedBlock)
-
+      | NONE => (print("Searching for: "^id^"\nOptions: ["^concatList(StringMap.listKeys((!m))));raise UndefinedBlock)
+  and concatList([]) = "]"
+        | concatList(h::t) = h^", "^concatList(t)
 
   fun printCmds([]) = true
-        | printCmds((command)::t) = (print("\n\t\t"^commandToString(command));true)  andalso printCmds(t)
+        | printCmds((command)::t) = (print("\n\t\t"^commandToString(command));true) andalso printCmds(t)
 
   fun printParams([]) = true
         | printParams((tp,var)::t) = (print((var)^":"^typeToString(tp)^"; ");true)  andalso printParams(t)
@@ -157,9 +158,9 @@ Ast = struct
       SOME(bloco) => printBlock(bloco)
     | NONE => true
 
-  fun printList([], map:Block StringMap.map ref) = true
-        | printList(h::t, map) = printSomething(map, h)  andalso printList(t, map)
+  fun printListEnv([], map:Block StringMap.map ref) = true
+        | printListEnv(h::t, map) = printSomething(map, h)  andalso printListEnv(t, map)
         
-  fun printEnv(Env(m,ml)) =  printList (StringMap.listKeys((!m)), m) 
+  fun printEnv(Env(m,ml)) =  printListEnv (StringMap.listKeys((!m)), m) 
     
 end

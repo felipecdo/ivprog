@@ -8,7 +8,6 @@ bloco principal(){
     texto nome = "Maria";
     
     escreva("Teste: O texto abaixo deveria ser: Meu Texto 50");
-    chamaProcedure("Meu texto: ", numero)
 
     executaOperacoes();
     	
@@ -19,13 +18,92 @@ bloco principal(){
     testaSeCompleto();
 
     testaFibonnaci();
+
+    escrevaNome(nome , numeroNegativo)
+
+    para_ao_contrario()
+
+    precedencia()
+
+    funcoes_padroes()
 }
+
+bloco funcoes_padroes() {
+    escreva("Teste: O texto abaixo deveria ser: -1");
+    inteiro valorInt = como_inteiro("-1");
+    escreva(valorInt);
+    
+    escreva("Teste: O texto abaixo deveria ser: -1");
+    valorInt = como_inteiro(-1.0);
+    escreva(valorInt);
+    
+    escreva("Teste: O texto abaixo deveria ser: -1.0");
+    real valorReal = como_real(-1);
+    escreva(valorReal);
+
+    escreva("Teste: O texto abaixo deveria ser: -1.3");
+    valorReal = como_real("-1.3");
+    escreva(valorReal);
+    
+    escreva("Teste: O texto abaixo deveria ser: verdadeiro");
+    booleano valorBool = como_booleano("verdadeiro");
+    escreva(valorBool);
+
+    escreva("Teste: O texto abaixo deveria ser: falso");
+    valorBool = como_booleano("falso");
+    escreva(valorBool);
+}
+
+
+bloco precedencia() {
+    escreva("Teste: O texto abaixo deveria ser: 8");
+	inteiro operacao = 1 + 2 - 5 * (5 - 2 * 3);
+    escreva(operacao);
+
+    inteiro menos_quatro = -4
+
+    escreva("Teste: O texto abaixo deveria ser: 17");
+	operacao = 1 + 2 - 2 * (5 + menos_quatro * 3);
+    escreva(operacao);
+
+    escreva("Teste: O texto abaixo deveria ser: 17");
+	operacao = -2 * (5 + menos_quatro * 3);
+    escreva(operacao);
+
+    escreva("Teste: O texto abaixo deveria ser: verdadeiro");
+	booleano resultado = 1 + 2 - 5 * (5 - 2 * 3) == 8;
+    escreva(resultado);
+
+    escreva("Teste: O texto abaixo deveria ser: falso");
+    resultado = nao (verdadeiro) e falso
+    escreva(resultado);
+
+    escreva("Teste: O texto abaixo deveria ser: falso");
+    resultado = nao (1 + 2 - 5 * (5 - 2 * 3) == 8) e verdadeiro ou falso
+    escreva(resultado);
+    
+    escreva("Teste: O texto abaixo deveria ser: falso");
+	resultado = nao (1 + 2 - 5 * (5 - 2 * 3) == 8);
+    escreva(resultado);
+
+    inteiro dois = 2
+
+    escreva(1 + 2 - 5 )
+    escreva(1 + dois - 5 )
+
+    escreva("Teste: O texto abaixo deveria ser: verdadeiro");
+    resultado = (1 + 2 - 5 * (5 - dois * 3) == 8) ou verdadeiro e falso
+    escreva(resultado);
+}
+
 
 bloco testaSeCompleto() {
     escreva("Teste: O texto abaixo deveria ser: Menor que 1");
 	testaSe(0);
-    escreva("Teste: O texto abaixo deveria ser: Menor que 5");
+    escreva("Teste: O texto abaixo deveria ser: Menor que 3");
     testaSe(1);
+    escreva("Teste: O texto abaixo deveria ser: Menor que 5");
+    testaSe(3);
     escreva("Teste: O texto abaixo deveria ser: Maior igual a 5");
     testaSe(10);
 }
@@ -33,6 +111,8 @@ bloco testaSeCompleto() {
 bloco testaSe(inteiro numero) {
     se(numero < 1){
         escreva("Menor que 1");
+    } senao se(numero < 3){
+        escreva("Menor que 3");
     } senao se(numero < 5){
         escreva("Menor que 5");
     } senao {
@@ -40,9 +120,9 @@ bloco testaSe(inteiro numero) {
     } 
 }
 
-bloco chamaProcedure(texto meuTexto , inteiro valor) {
-  escreva(meuTexto);
-  escreva(valor);
+bloco escrevaNome(texto meuTexto, inteiro valor) {
+    escreva("Teste: O texto abaixo deveria ser: Maria -10");
+    escreva(meuTexto+ " " +como_texto(valor));
 }
 
 bloco executaOperacoes() {
@@ -101,12 +181,12 @@ bloco executaOperacoes() {
 }
 
 bloco booleano funcaoEhMaior(inteiro n1, inteiro n2) {
-  escreva("teste");
-  escreva(n1);
-  escreva(n1);
-  booleano x = (n1) >= (n2);
-  escreva(x);
-	retorna x;
+    escreva("teste");
+    escreva(n1);
+    escreva(n1);
+    booleano x = (n1) >= (n2);
+    escreva(x);
+    retorna x;
 }
 
 bloco booleano funcaoEhMaiorQueCinco(real n1) {
@@ -114,8 +194,8 @@ bloco booleano funcaoEhMaiorQueCinco(real n1) {
 }
 
 bloco inteiro naoExecutaAposRetorno() {
-  retorna 1;
-  retorna 2;
+    retorna 1;
+    retorna 2;
 }
 
 
@@ -154,6 +234,23 @@ bloco inteiro fibonacci_for(inteiro n){
         atual = novo;
     }
     retorna atual;
+}
+
+
+bloco para_ao_contrario(){
+    escreva("Teste: Os textos abaixo deveriam ser: 5, 6, 7, 8, 9, 10");
+
+    inteiro i = 0;
+    para i de 5 ate 10 {
+        escreva(i);
+    }
+
+    escreva("Teste: Os textos abaixo deveriam ser: 10, 9, 8, 7, 6, 5");
+
+    i = 0;
+    para i de 10 ate 5 {
+        escreva(i);
+    }
 }
 
 bloco inteiro fibonacci_while(inteiro n){

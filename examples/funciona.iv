@@ -17,6 +17,7 @@ bloco principal(){
 
     testaSeCompleto();
 
+    testaFibonnaci();
 }
 
 bloco testaSeCompleto() {

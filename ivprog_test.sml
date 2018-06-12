@@ -36,6 +36,21 @@ structure IVProgTester =
         r
       end
 
+    fun file_to_visual_ast(file: string) =
+      let
+        val sm = AntlrStreamPos.mkSourcemap()
+        val strm = IVProgLexer.streamifyInstream (TextIO.openIn file)
+        val lexer = IVProgLexer.lex (sm)
+        val (r, strm', errs) = IP.parse lexer strm
+      in
+        case r of
+          SOME(env) => Ast.printEnv(env)
+          | NONE => (print(String.concatWith "\n"
+          (List.map (AntlrRepair.repairToString tok2s sm)
+            errs));
+            raise Erro )
+      end
+  
     fun file_to_ast(file: string) =
       let
         val sm = AntlrStreamPos.mkSourcemap()

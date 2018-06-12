@@ -2,6 +2,8 @@ structure
 Ast = struct
 
   exception UndefinedBlock
+  exception ProcedureReturn of string
+  exception FunctionMustReturn of string
 
   datatype Type =
       KInt
@@ -38,15 +40,15 @@ Ast = struct
   and expToString(exp, count) =
   if count > 50 then "\n------------------------------------\n!!! ATENÇÃO LOOP DETECTADO !!! ATENÇÃO LOOP DETECTADO !!!\n------------------------------------\n"
   else case exp of
-    IntConstant exp => "IntConstant("^Int.toString(exp)^")"
-    | StringConstant  exp => "StringConstant("^exp^")"
-    | RealConstant  exp => "RealConstant("^Real.toString(exp)^")"
-    | BoolConstant  exp => "BoolConstant("^Bool.toString(exp)^")"
+    IntConstant v => "IntConstant("^Int.toString(v)^")"
+    | StringConstant  v => "StringConstant("^v^")"
+    | RealConstant  v => "RealConstant("^Real.toString(v)^")"
+    | BoolConstant  v => "BoolConstant("^Bool.toString(v)^")"
     | Unit => "Unit"
-    | Variable  exp => "Variable("^exp^")"
+    | Variable  id => "Variable("^id^")"
     | InfixApp (exp1,str,exp2) => "InfixApp("^expToString(exp1, count+1)^", "^str^", "^expToString(exp2, count+1)^")"
-    | CallFunc (str,expList) => "CallFunc("^expToString(exp, count+1)^", ["^expListToString(expList)^"])"
-    | Neg  exp => "Neg("^expToString(exp, count+1)^")"
+    | CallFunc (str,expList) => "CallFunc("^str^", ["^expListToString(expList)^"])"
+    | Neg  v => "Neg("^expToString(v, count+1)^")"
 
   datatype Commands = 
       Return of Exp
@@ -91,16 +93,24 @@ Ast = struct
   fun create_procedure(id:string,lista: a list,comandos: Commands list) = 
     let
       val bloco = Procedure(id,lista,comandos)
-    in
-      (id,bloco)
+    in if validate_proc(comandos) then (id,bloco) else raise ProcedureReturn("O bloco "^id^" não pode conter o comando retorna.")
     end
+  and validate_proc([]) = true
+    | validate_proc(c::cs) = (case c of
+      Return _ => false
+      | IfThenElse(_,_,c2) => validate_proc(c2) andalso validate_proc(cs)
+      | _ => validate_proc(cs))
 
   fun create_function(id:string, tipo:Type, lista: a list, comandos: Commands list) = 
     let
       val bloco = Function(id, tipo, lista, comandos)
-    in
-      (id,bloco)
+    in if validate_fun(comandos) then (id,bloco) else raise FunctionMustReturn("O bloco "^id^" não garante retorno.")  
     end
+  and validate_fun(c::cs) = (case c of
+    Return _ => true
+    | IfThenElse(_,_,c2) => validate_fun(c2) andalso validate_fun(cs)
+    | _ => validate_fun(cs))
+  | validate_fun([]) = false
 
   fun empty_env() = let
     val imprimir = Procedure("escreva",[(KUnit,"p1")],[LangCall("imprimir")])

@@ -28,7 +28,7 @@ structure IVProgTester =
         val sm = AntlrStreamPos.mkSourcemap()
         val strm = IVProgLexer.streamifyInstream (TextIO.openString inputString)
         val lexer = IVProgLexer.lex (sm)
-        val (r, strm', errs) = IP.parse lexer strm
+        val (r, strm', errs,_) = IP.parse lexer strm
       in
         print (String.concatWith "\n"
           (List.map (AntlrRepair.repairToString tok2s sm)
@@ -41,10 +41,12 @@ structure IVProgTester =
         val sm = AntlrStreamPos.mkSourcemap()
         val strm = IVProgLexer.streamifyInstream (TextIO.openIn file)
         val lexer = IVProgLexer.lex (sm)
-        val (r, strm', errs) = IP.parse lexer strm
+        val (r, strm', errs,_) = IP.parse lexer strm
       in
         case r of
-          SOME(env) => Ast.printEnv(env)
+          SOME(env) => (print(String.concatWith "\n"
+          (List.map (AntlrRepair.repairToString tok2s sm)
+            errs));Ast.printEnv(env))
           | NONE => (print(String.concatWith "\n"
           (List.map (AntlrRepair.repairToString tok2s sm)
             errs));
@@ -56,7 +58,7 @@ structure IVProgTester =
         val sm = AntlrStreamPos.mkSourcemap()
         val strm = IVProgLexer.streamifyInstream (TextIO.openIn file)
         val lexer = IVProgLexer.lex (sm)
-        val (r, strm', errs) = IP.parse lexer strm
+        val (r, strm', errs,_) = IP.parse lexer strm
       in
         case r of
           SOME(env) => IVProgProcessor.inicializa(env)

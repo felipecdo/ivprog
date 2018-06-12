@@ -32,7 +32,7 @@ bloco principal(){
     	nome = "Maria";
     	idades = idades + qualIdade(1);
     }
-    escreva(qualIdade(0)+qualIdade(0));
+    qualIdade(5 ;
 }
 
 bloco imprimirIdades(int idades) {
@@ -43,6 +43,9 @@ bloco imprimirIdades(int idades) {
 bloco inteiro qualIdade(inteiro name) {
 	
     inteiro i = 20;
+    para i de 1 ate 5 {
+        retorna x
+    }
     retorna i;
 	
 }

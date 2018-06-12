@@ -7,6 +7,7 @@ Library
   structure BooleanConverter
   structure IVProgProcessor
   structure StringMap
+  structure StringSet
 is
   $/basis.cm
   $/smlnj-lib.cm
@@ -15,6 +16,7 @@ is
   ivprog.lex : ml-ulex
   int_map.sml
   string_map.sml
+  string_set.sml
   store.sml
   ast.sml
   boolean_converter.sml

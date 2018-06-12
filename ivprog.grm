@@ -2,8 +2,14 @@
 
 %defs (
   structure A = Ast
+
+  exception DuplicateBlock
+
+  fun addIfNew l nome = if StringSet.member((!l),nome) then
+   raise DuplicateBlock else l := StringSet.add((!l), nome)
 );
 
+%refcell lista: StringSet.set = (StringSet.empty);
 
 %tokens
   : KW_bloco ("bloco")
@@ -21,6 +27,7 @@
   | KW_return("retorna")
   ;
 
+%keywords KW_bloco,KW_if,KW_else,KW_while,KW_from,KW_for,KW_until,KW_booleano,KW_texto,KW_real,KW_int,KW_return;
 
 %start program;
 
@@ -33,16 +40,16 @@ program
   ;
 
 block
-  : %try procedure => (procedure)
-  | %try function => (function)
-  ;
-
-procedure
-  : KW_bloco ID formalparams LC command+ RC => (A.create_procedure(ID, formalparams, command))
+  : %try function
+  | %try procedure
   ;
 
 function
-  : KW_bloco data_type ID formalparams LC command+ RC => (A.create_function(ID, data_type, formalparams, command))
+  : KW_bloco data_type ID formalparams LC command+ RC => (addIfNew lista ID; A.create_function(ID, data_type, formalparams, command))
+  ;
+
+procedure
+  : KW_bloco ID formalparams LC command+ RC => (addIfNew lista ID; A.create_procedure(ID, formalparams, command))
   ;
 
 command
@@ -50,9 +57,9 @@ command
   | KW_while LP expression RP "{" command+ "}" => (A.While(expression,command))
   | conditional => (conditional)
   | KW_for ID KW_from expression KW_until expression "{" command+ "}" => (A.For(ID,expression1,expression2,command))
-  | %try ID actualparams SEMI? => (A.CallProc(ID, actualparams))
   | data_type ID EQ expression SEMI? => (A.Decl(ID,data_type,expression))
   | %try ID EQ expression SEMI? => (A.Attrib(ID,expression))
+  | %try ID actualparams SEMI? => (A.CallProc(ID, actualparams))
   ;
 
 conditional
@@ -62,8 +69,8 @@ conditional
   ;
 
 formalparams
-  : %try LP RP => ([])
-  | %try LP formal_params_list RP => (formal_params_list)
+  : LP RP => ([])
+  | LP formal_params_list RP => (formal_params_list)
   ;
 
 formal_params_list
@@ -104,12 +111,12 @@ term
   ;
 
 factor
-  : %try CON_int => ( A.IntConstant(CON_int) )
-  | %try CON_real => ( A.RealConstant(CON_real) )
-  | %try CON_string => (A.StringConstant(CON_string))
-  | %try CON_boolean => (A.BoolConstant(CON_boolean))
+  : CON_int => ( A.IntConstant(CON_int) )
+  | CON_real => ( A.RealConstant(CON_real) )
+  | CON_string => (A.StringConstant(CON_string))
+  | CON_boolean => (A.BoolConstant(CON_boolean))
+  | LP expression RP => (expression)
+  | Not factor => (A.Neg factor)
   | %try ID actualparams => (A.CallFunc(ID, actualparams))
   | %try ID => (A.Variable(ID))
-  | %try LP expression RP => (expression)
-  | %try Not factor => (A.Neg factor)
   ;

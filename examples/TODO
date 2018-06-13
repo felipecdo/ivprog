@@ -1,12 +1,9 @@
-concatenação não funcionando
-    bloco chamaProcedure(texto meuTexto , inteiro valor) {
-        escreva("oi");
-        escreva(meuTexto + como_texto(valor));
-    }
+Associatividade está utilizando da direita para esquerda.
+    inteiro menos_dois = -2
 
-quando se chama a funcao com 2 argumentos. Está copiando somente 1 e replicando para todos
-    escreva("> Teste: O texto abaixo deveria ser: verdadeiro");
-    booleano retorno = funcaoEhMaior(numero, numeroNegativo);
-    escreva(retorno);
-    retorno = funcaoEhMaiorQueCinco(valor);
-    escreva(retorno);
+    escreva(1 + 2 - 5 )
+    escreva(1 - menos_dois - 5 )
+
+    escreva("Teste: O texto abaixo deveria ser: verdadeiro");
+    resultado = (1 + 2 - 5 * (5 + menos_dois * 3) == 8) ou verdadeiro e falso
+    escreva(resultado);

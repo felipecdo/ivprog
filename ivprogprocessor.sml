@@ -55,13 +55,7 @@ structure IVProgProcessor = struct
 				(Store.SVInt(a),Store.SVInt(b)) => Store.SVInt(a+b)
 				| (Store.SVReal(a),Store.SVReal(b)) => Store.SVReal(a+b)
 				| (Store.SVTexto(a),Store.SVTexto(b)) => Store.SVTexto(a^b)
-				| (_,_) => let
-					val tex1 = Store.toString(vl1)
-					val tex2 = Store.toString(vl2)
-					val _ = print(tex1^tex2)
-				in
-					raise IncompatibleType("Operação '+' inválida")
-				end 
+				| (_,_) => raise IncompatibleType("Operação '+' inválida")
 		end
 		| avalia_expressao(Ast.InfixApp(e0,"-",e1), (sto,env)) = let
 			val vl1 = avalia_expressao(e0,(sto,env))
@@ -144,13 +138,7 @@ structure IVProgProcessor = struct
 				(Store.SVInt(a),Store.SVInt(b)) => Store.SVBool(Store.eq(vl1,vl2))
 				| (Store.SVReal(a),Store.SVReal(b)) => Store.SVBool(Store.eq(vl1,vl2))
 				| (Store.SVTexto(a),Store.SVTexto(b)) => Store.SVBool(Store.eq(vl1,vl2))
-				| (_,_) => let
-					val tex1 = Store.toString(vl1)
-					val tex2 = Store.toString(vl2)
-					val _ = print(tex1^tex2)
-				in
-					raise IncompatibleType("Operação '==' inválida")
-				end
+				| (_,_) => raise IncompatibleType("Operação '==' inválida")
 		end
 		| avalia_expressao(Ast.InfixApp(e0,"<>",e1), (sto,env)) = let
 			val vl1 = avalia_expressao(e0,(sto,env))
@@ -229,9 +217,10 @@ structure IVProgProcessor = struct
 		| executa_comando(Ast.Decl(id,ktipo,exp), (sto,env)) = let
 			val vl = avalia_expressao(exp,(sto,env))
 			val exists = Store.isDeclared(sto, id)
-		in
-			if (Store.checkType(ktipo,vl) andalso not exists) then (Store.updateStore(sto,id,vl), env) else
-				raise AlreadyDeclaredVariable("Variável "^id^"já definida ou tipo atribuído incompatível.")
+		in case (Store.checkType(ktipo,vl), exists) of
+		    (true, false) => (Store.updateStore(sto,id,vl), env)
+			| (false, false) => raise IncompatibleType("Tipo de dado resultante da expressão é incompatível.")
+			| (_, true) => raise AlreadyDeclaredVariable("Variável "^id^"já definida ou tipo atribuído incompatível.")
 		end
 
 		| executa_comando(Ast.Skip, (sto,env)) = (sto,env)

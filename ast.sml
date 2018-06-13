@@ -77,7 +77,7 @@ Ast = struct
   and commandToString command = case command of
     Return exp => "Return: "^expToString(exp,0) 
     | Attrib (str,exp) => "Attrib: "^str^" <- "^expToString(exp,0)
-    | Decl (str,decType,exp)  => (print("debug1");expToString(exp,0);print("debug3");"Decl: "^str^":"^typeToString(decType)^" <- "^expToString(exp, 0))
+    | Decl (str,decType,exp)  => (expToString(exp,0);"Decl: "^str^":"^typeToString(decType)^" <- "^expToString(exp, 0))
     | CallProc (str,expList)  => "CallProc: "^str^" ("^expListToString(expList)^")" 
     | IfThenElse (exp, cmdList1, cmdList2) => "IfThenElse: "^expToString(exp,0) 
                                             ^"\n\t\t\t true:  "^commandListToString(cmdList1)
@@ -110,7 +110,7 @@ Ast = struct
       | IfThenElse(_,_,c2) => validate_proc(c2) andalso validate_proc(cs)
       | _ => validate_proc(cs))
 
-  fun create_function(id:string, tipo:Type, lista: a list, comandos: Commands list) = 
+  and create_function(id:string, tipo:Type, lista: a list, comandos: Commands list) = 
     let
       val bloco = Function(id, tipo, lista, comandos)
     in if validate_fun(comandos) then (id,bloco) else raise FunctionMustReturn("O bloco "^id^" não garante retorno.")  
@@ -145,6 +145,12 @@ Ast = struct
     in
       convert_env(Env(m,ml),tl)
     end
+
+  fun isEnvDefined(Env(m,ml), id) = case StringMap.find((!m),id) of
+      SOME(bloco) => true
+    | NONE => case StringMap.find((!ml), id) of
+      SOME(lang) => true
+      | NONE => false
 
   fun applyEnv(Env(m,ml), id) = case StringMap.find((!m),id) of
       SOME(bloco) => bloco

@@ -28,12 +28,10 @@ structure IVProgProcessor = struct
 		| avalia_expressao(Ast.Unit, (sto,env)) = Store.Undefined
 		| avalia_expressao(Ast.Neg(exp), (sto,env)) = let
 			val vl = avalia_expressao(exp, (sto,env))
-			fun checkBool(sv) = if Store.checkType(Ast.KType(Ast.KBool),sv) then SOME(sv) else NONE
-			val ehBool = checkBool(vl)
+			val ehBool = Store.asBool(vl)
 		in
 			case ehBool of
-				SOME(Store.SVBool a) => Store.SVBool(not a)
-				| SOME(_) => raise IllegalState
+				SOME(a) => Store.SVBool(not a)
 				| NONE => raise IncompatibleType ("Tipo de dado resultante da expressão é incompatível.")
 		end
 		| avalia_expressao(Ast.CallFunc(id, exp), (sto,env)) = let
@@ -227,11 +225,11 @@ structure IVProgProcessor = struct
 		| executa_comando(Ast.IfThenElse(exp, c0, c1), (sto,env)) = let
 			val vl = avalia_expressao(exp,(sto,env))
 			fun checkBool(sv) = if Store.checkType(Ast.KType(Ast.KBool),sv) then SOME(sv) else NONE
-			val ehBool = checkBool(vl)
+			val ehBool = Store.asBool(vl)
 		in
 			case ehBool of
-				SOME(Store.SVBool a) => if a then executa_comandos(c0,(sto,env)) else executa_comandos(c1,(sto,env))
-				| SOME(_) => raise IllegalState
+				SOME(true) => executa_comandos(c0,(sto,env))
+				| SOME(false) =>  executa_comandos(c1,(sto,env))
 				| NONE => raise IncompatibleType ("O comando condicional espera como paramêtro uma expressão lógica, diferente da que foi informada")
 		end
 
@@ -257,11 +255,11 @@ structure IVProgProcessor = struct
 		| executa_comando(Ast.While(exp,cs),(sto,env)) = let
 			val vl = avalia_expressao(exp,(sto,env))
 			fun checkBool(sv) = if Store.checkType(Ast.KType(Ast.KBool),sv) then SOME(sv) else NONE
-			val ehBool = checkBool(vl)
+			val ehBool = Store.asBool(vl)
 		in
 			case ehBool of
-				SOME(Store.SVBool a) => if a then executa_comando(Ast.While(exp,cs),executa_comandos(cs,(sto,env))) else (sto,env)
-				| SOME(_) => raise IllegalState
+				SOME(true) => executa_comando(Ast.While(exp,cs),executa_comandos(cs,(sto,env)))
+				| SOME(false) => (sto,env)
 				| NONE => raise IncompatibleType("O comando condicional espera como paramêtro uma expressão lógica, diferente da que foi informada")
 		end
 		| executa_comando(Ast.LangCall("imprimir"),(sto,env)) = let

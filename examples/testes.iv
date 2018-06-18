@@ -8,6 +8,7 @@ bloco principal(){
     texto nome = "Maria";
     
     escreva("Teste: O texto abaixo deveria ser: Meu Texto 50");
+    escreva("Meu texto " + como_texto(numero));
 
     executaOperacoes();
     	

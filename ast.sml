@@ -107,7 +107,9 @@ Ast = struct
   and validate_proc([]) = true
     | validate_proc(c::cs) = (case c of
       Return _ => false
-      | IfThenElse(_,_,c2) => validate_proc(c2) andalso validate_proc(cs)
+      | IfThenElse(_,c1,c2) => validate_proc(c1) andalso validate_proc(c2) andalso validate_proc(cs)
+      | While(_, c1) =>  validate_proc(c1) andalso validate_proc(cs)
+      | For(_,_,_,c1) =>  validate_proc(c1) andalso validate_proc(cs)
       | _ => validate_proc(cs))
 
   and create_function(id:string, tipo:Type, lista: a list, comandos: Commands list) = 
@@ -156,7 +158,7 @@ Ast = struct
       SOME(bloco) => bloco
     | NONE => case StringMap.find((!ml), id) of
       SOME(lang) => lang
-      | NONE => (print("Searching for: "^id^"\nOptions: ["^concatList(StringMap.listKeys((!m))));raise UndefinedBlock)
+      | NONE => (print("Searching for: "^id^"\nOptions: ["^concatList(StringMap.listKeys((!m)))^"\n");raise UndefinedBlock)
   and concatList([]) = "]"
         | concatList(h::t) = h^", "^concatList(t)
 

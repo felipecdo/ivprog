@@ -18,7 +18,7 @@ struct
 
 	and applyStore(State(m,b), id) = case (StringMap.find((!m), id)) of
 			SOME(vl) => vl
-		|	NONE => (print("Searching for: "^id^"\nOptions: ["^Ast.concatList(StringMap.listKeys((!m))));raise VariableNotDeclared("Variável não declarada: " ^ id))
+		|	NONE => (print("Searching for: "^id^"\nOptions: ["^Ast.concatList(StringMap.listKeys((!m)))^"\n");raise VariableNotDeclared("Variável não declarada: " ^ id))
 
 	and updateStore(State(m,b), id, vl) = let 
 		val _ = m := StringMap.insert((!m), id, vl)

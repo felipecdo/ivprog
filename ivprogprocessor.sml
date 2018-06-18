@@ -136,6 +136,7 @@ structure IVProgProcessor = struct
 				(Store.SVInt(a),Store.SVInt(b)) => Store.SVBool(Store.eq(vl1,vl2))
 				| (Store.SVReal(a),Store.SVReal(b)) => Store.SVBool(Store.eq(vl1,vl2))
 				| (Store.SVTexto(a),Store.SVTexto(b)) => Store.SVBool(Store.eq(vl1,vl2))
+				| (Store.SVBool(a),Store.SVBool(b)) => Store.SVBool(a = b)
 				| (_,_) => raise IncompatibleType("Operação '==' inválida")
 		end
 		| avalia_expressao(Ast.InfixApp(e0,"<>",e1), (sto,env)) = let
@@ -145,6 +146,8 @@ structure IVProgProcessor = struct
 			case (vl1,vl2) of
 				(Store.SVInt(a),Store.SVInt(b)) => Store.SVBool(a<>b)
 				| (Store.SVReal(a),Store.SVReal(b)) => Store.SVBool(Real.!=(a,b))
+				| (Store.SVReal(a),Store.SVReal(b)) => Store.SVBool(Real.!=(a,b))
+				| (Store.SVBool(a),Store.SVBool(b)) => Store.SVBool(a <> b)
 				| (_,_) => raise IncompatibleType("Operação '<>' inválida")
 		end
 		| avalia_expressao(Ast.InfixApp(e0,"e",e1), (sto,env)) = let

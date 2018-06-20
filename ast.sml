@@ -37,19 +37,6 @@ Ast = struct
     | CallFunc of string * Exp list
     | Neg of Exp
     ;
-    
-  fun expListToString([]) = ""
-        | expListToString((exp)::t) = expToString(exp,0) ^", "^ expListToString(t)
-
-  and expToString(exp, count) = case exp of
-    IntConstant v => "IntConstant("^Int.toString(v)^")"
-    | StringConstant  v => "StringConstant("^v^")"
-    | RealConstant  v => "RealConstant("^Real.toString(v)^")"
-    | BoolConstant  v => "BoolConstant("^Bool.toString(v)^")"
-    | Variable  id => "Variable("^id^")"
-    | InfixApp (exp1,str,exp2) => "InfixApp("^expToString(exp1, count+1)^", "^str^", "^expToString(exp2, count+1)^")"
-    | CallFunc (str,expList) => "CallFunc("^str^", ["^expListToString(expList)^"])"
-    | Neg  v => "Neg("^expToString(v, count+1)^")"
 
   datatype Commands = 
       Return of Exp
@@ -62,24 +49,6 @@ Ast = struct
     | Skip
     | LangCall of string
     ;
-  
-  fun commandListToString([]) = ""
-        | commandListToString((cmd)::t) = commandToString(cmd) ^"; "^ commandListToString(t)
-
-  and commandToString command = case command of
-    Return exp => "Return: "^expToString(exp,0) 
-    | Attrib (str,exp) => "Attrib: "^str^" <- "^expToString(exp,0)
-    | Decl (str,decType,exp)  => (expToString(exp,0);"Decl: "^str^":"^typeToString(decType)^" <- "^expToString(exp, 0))
-    | CallProc (str,expList)  => "CallProc: "^str^" ("^expListToString(expList)^")" 
-    | IfThenElse (exp, cmdList1, cmdList2) => "IfThenElse: "^expToString(exp,0) 
-                                            ^"\n\t\t\t true:  "^commandListToString(cmdList1)
-                                            ^"\n\t\t\t false: "^commandListToString(cmdList2)
-    | While (exp, cmdList) => "While: "^expToString(exp,0) 
-                                       ^"\n\t\t\t true:  "^commandListToString(cmdList)
-    | For (str, exp1, exp2, cmdList) => "For: "^expToString(exp1,0) ^"; "^expToString(exp2,0) 
-                                             ^"\n\t\t\t true:  "^commandListToString(cmdList)
-    | Skip => "Skip"
-    | LangCall str => "LangCall: "^str
 
   datatype Block = 
       Function of string * Type * a list * Commands list
@@ -151,8 +120,40 @@ Ast = struct
     | NONE => case StringMap.find((!ml), id) of
       SOME(lang) => lang
       | NONE => (print("Searching for: "^id^"\nOptions: ["^concatList(StringMap.listKeys((!m)))^"\n");raise Exceptions.UndefinedBlock)
+
   and concatList([]) = "]"
         | concatList(h::t) = h^", "^concatList(t)
+
+  fun expListToString([]) = ""
+        | expListToString((exp)::t) = expToString(exp,0) ^", "^ expListToString(t)
+
+  and expToString(exp, count) = case exp of
+    IntConstant v => "IntConstant("^Int.toString(v)^")"
+    | StringConstant  v => "StringConstant("^v^")"
+    | RealConstant  v => "RealConstant("^Real.toString(v)^")"
+    | BoolConstant  v => "BoolConstant("^Bool.toString(v)^")"
+    | Variable  id => "Variable("^id^")"
+    | InfixApp (exp1,str,exp2) => "InfixApp("^expToString(exp1, count+1)^", "^str^", "^expToString(exp2, count+1)^")"
+    | CallFunc (str,expList) => "CallFunc("^str^", ["^expListToString(expList)^"])"
+    | Neg  v => "Neg("^expToString(v, count+1)^")"
+  
+  fun commandListToString([]) = ""
+        | commandListToString((cmd)::t) = commandToString(cmd) ^"; "^ commandListToString(t)
+
+  and commandToString command = case command of
+    Return exp => "Return: "^expToString(exp,0) 
+    | Attrib (str,exp) => "Attrib: "^str^" <- "^expToString(exp,0)
+    | Decl (str,decType,exp)  => (expToString(exp,0);"Decl: "^str^":"^typeToString(decType)^" <- "^expToString(exp, 0))
+    | CallProc (str,expList)  => "CallProc: "^str^" ("^expListToString(expList)^")" 
+    | IfThenElse (exp, cmdList1, cmdList2) => "IfThenElse: "^expToString(exp,0) 
+                                            ^"\n\t\t\t true:  "^commandListToString(cmdList1)
+                                            ^"\n\t\t\t false: "^commandListToString(cmdList2)
+    | While (exp, cmdList) => "While: "^expToString(exp,0) 
+                                       ^"\n\t\t\t true:  "^commandListToString(cmdList)
+    | For (str, exp1, exp2, cmdList) => "For: "^expToString(exp1,0) ^"; "^expToString(exp2,0) 
+                                             ^"\n\t\t\t true:  "^commandListToString(cmdList)
+    | Skip => "Skip"
+    | LangCall str => "LangCall: "^str
 
   fun printCmds([]) = true
         | printCmds((command)::t) = (print("\n\t\t"^commandToString(command));true) andalso printCmds(t)

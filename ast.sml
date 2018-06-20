@@ -1,10 +1,6 @@
 structure
 Ast = struct
 
-  exception UndefinedBlock
-  exception ProcedureReturn of string
-  exception FunctionMustReturn of string
-
   datatype BaseType =
       KInt
     | KReal
@@ -36,7 +32,6 @@ Ast = struct
     | StringConstant of string
     | RealConstant of real
     | BoolConstant of bool
-    | Unit
     | Variable of string
     | InfixApp of Exp * string * Exp
     | CallFunc of string * Exp list
@@ -46,14 +41,11 @@ Ast = struct
   fun expListToString([]) = ""
         | expListToString((exp)::t) = expToString(exp,0) ^", "^ expListToString(t)
 
-  and expToString(exp, count) =
-  if count > 50 then "\n------------------------------------\n!!! ATENÇÃO LOOP DETECTADO !!! ATENÇÃO LOOP DETECTADO !!!\n------------------------------------\n"
-  else case exp of
+  and expToString(exp, count) = case exp of
     IntConstant v => "IntConstant("^Int.toString(v)^")"
     | StringConstant  v => "StringConstant("^v^")"
     | RealConstant  v => "RealConstant("^Real.toString(v)^")"
     | BoolConstant  v => "BoolConstant("^Bool.toString(v)^")"
-    | Unit => "Unit"
     | Variable  id => "Variable("^id^")"
     | InfixApp (exp1,str,exp2) => "InfixApp("^expToString(exp1, count+1)^", "^str^", "^expToString(exp2, count+1)^")"
     | CallFunc (str,expList) => "CallFunc("^str^", ["^expListToString(expList)^"])"
@@ -102,7 +94,7 @@ Ast = struct
   fun create_procedure(id:string,lista: a list,comandos: Commands list) = 
     let
       val bloco = Procedure(id,lista,comandos)
-    in if validate_proc(comandos) then (id,bloco) else raise ProcedureReturn("O bloco "^id^" não pode conter o comando retorna.")
+    in if validate_proc(comandos) then (id,bloco) else raise Exceptions.ProcedureReturn("O bloco "^id^" não pode conter o comando retorna.")
     end
   and validate_proc([]) = true
     | validate_proc(c::cs) = (case c of
@@ -115,7 +107,7 @@ Ast = struct
   and create_function(id:string, tipo:Type, lista: a list, comandos: Commands list) = 
     let
       val bloco = Function(id, tipo, lista, comandos)
-    in if validate_fun(comandos) then (id,bloco) else raise FunctionMustReturn("O bloco "^id^" não garante retorno.")  
+    in if validate_fun(comandos) then (id,bloco) else raise Exceptions.FunctionMustReturn("O bloco "^id^" não garante retorno.")  
     end
   and validate_fun(c::cs) = (case c of
     Return _ => true
@@ -158,7 +150,7 @@ Ast = struct
       SOME(bloco) => bloco
     | NONE => case StringMap.find((!ml), id) of
       SOME(lang) => lang
-      | NONE => (print("Searching for: "^id^"\nOptions: ["^concatList(StringMap.listKeys((!m)))^"\n");raise UndefinedBlock)
+      | NONE => (print("Searching for: "^id^"\nOptions: ["^concatList(StringMap.listKeys((!m)))^"\n");raise Exceptions.UndefinedBlock)
   and concatList([]) = "]"
         | concatList(h::t) = h^", "^concatList(t)
 

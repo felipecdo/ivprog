@@ -1,9 +1,0 @@
-Associatividade está utilizando da direita para esquerda.
-    inteiro menos_dois = -2
-
-    escreva(1 + 2 - 5 )
-    escreva(1 - menos_dois - 5 )
-
-    escreva("Teste: O texto abaixo deveria ser: verdadeiro");
-    resultado = (1 + 2 - 5 * (5 + menos_dois * 3) == 8) ou verdadeiro e falso
-    escreva(resultado);

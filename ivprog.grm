@@ -3,10 +3,8 @@
 %defs (
   structure A = Ast
 
-  exception DuplicateBlock
-
   fun addIfNew l nome = if StringSet.member((!l),nome) then
-   raise DuplicateBlock else l := StringSet.add((!l), nome)
+   raise Exceptions.DuplicateBlock else l := StringSet.add((!l), nome)
 );
 
 %refcell lista: StringSet.set = (StringSet.empty);

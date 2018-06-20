@@ -1,4 +1,5 @@
 Library
+  structure Exceptions
   structure IVProgLexer
   structure IVProgTokens
   structure IVProgTester
@@ -13,9 +14,9 @@ is
   $/basis.cm
   $/smlnj-lib.cm
   $/ml-lpt-lib.cm
+  exceptions.sml
   ivprog.grm : ml-antlr
   ivprog.lex : ml-ulex
-  int_map.sml
   string_map.sml
   string_set.sml
   store.sml
@@ -24,4 +25,3 @@ is
   ivprogprocessor.sml
   ivprog_runner.sml
   ivprog_test.sml
-  exceptions.sml

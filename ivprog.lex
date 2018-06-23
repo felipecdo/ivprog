@@ -2,8 +2,8 @@
 %name IVProgLexer;
 
 %let digit = [0-9];
-%let int = {digit}+;(* Ainda nao suporta negativo *)
-%let real = {int}"."{digit}+;(* Ainda nao suporta negativo *)
+%let int = {digit}+;
+%let real = {int}"."{digit}+;
 %let letter = [a-zA-Z];
 %let id = (_|{letter})(_|{letter}|{digit})*;
 %let relational_op = ("<" | ">" | "<=" | ">=" | "==" | "<>")+;
@@ -48,7 +48,6 @@
 <INITIAL> {real} => ( T.CON_real (valOf (Real.fromString yytext)) );
 
 
-(* Não funciona e nao tenho ideia do motivo *)
 <INITIAL> {boolean} => ( T.CON_boolean (valOf (BoolConv.fromString yytext)) );
 <INITIAL> {id} => ( T.ID yytext );
 

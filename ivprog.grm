@@ -2,7 +2,12 @@
 
 %defs (
   structure A = Ast
+
+  fun addIfNew l nome = if StringSet.member((!l),nome) then
+   raise Exceptions.DuplicateBlock else l := StringSet.add((!l), nome)
 );
+
+%refcell lista: StringSet.set = (StringSet.empty);
 
 %tokens
   : KW_bloco ("bloco")
@@ -10,16 +15,106 @@
   | CON_int of Int.int | CON_string of string | CON_real of Real.real 
   | CON_boolean of Bool.bool
   | ID of string | RELATIONAL_OP of string
-  | ARITHMETIC_OP of string | BI_BOOLEAN_OP of string | UN_BOOLEAN_OP of string
+  | SUM_OP of string | MULTI_OP of string | Not("nao")
   | LP ("(") | RP (")") | SEMI (";")
   | LC ("{") | RC ("}")
+  | COMMA (",") | EQ("=")
   | KW_while ("enquanto") 
   | KW_for ("para") | KW_from ("de") | KW_until ("ate")
+  | KW_int("inteiro") | KW_real("real") | KW_texto("texto") | KW_booleano("booleano")
+  | KW_return("retorna")
   ;
 
-%start block;
+%keywords KW_bloco,KW_if,KW_else,KW_while,KW_from,KW_for,KW_until,KW_booleano,KW_texto,KW_real,KW_int,KW_return;
+
+%start program;
+
+program
+  : block+ => (let
+    val env = A.empty_env()
+  in
+    A.convert_env(env,block)
+  end)
+  ;
 
 block
-  : CON_string => ( A.StringConstant(CON_string) )
-  | LP RP => ( A.Unit )
+  : %try function
+  | %try procedure
+  ;
+
+function
+  : KW_bloco data_type ID formalparams LC command+ RC => (addIfNew lista ID; A.create_function(ID, data_type, formalparams, command))
+  ;
+
+procedure
+  : KW_bloco ID formalparams LC command+ RC => (addIfNew lista ID; A.create_procedure(ID, formalparams, command))
+  ;
+
+command
+  : KW_return expression SEMI? => (A.Return(expression))
+  | KW_while LP expression RP "{" command+ "}" => (A.While(expression,command))
+  | conditional => (conditional)
+  | KW_for ID KW_from expression KW_until expression "{" command+ "}" => (A.For(ID,expression1,expression2,command))
+  | data_type ID EQ expression SEMI? => (A.Decl(ID,data_type,expression))
+  | %try ID EQ expression SEMI? => (A.Attrib(ID,expression))
+  | %try ID actualparams SEMI? => (A.CallProc(ID, actualparams))
+  ;
+
+conditional
+  : %try KW_if LP expression RP "{" command+ "}" KW_else "{" command+ "}" => (A.IfThenElse(expression,command1,command2))
+  | %try KW_if LP expression RP "{" command+ "}" KW_else conditional => (A.IfThenElse(expression,command,[conditional]))
+  | %try KW_if LP expression RP "{" command+ "}" => (A.IfThenElse(expression,command,[A.Skip]))
+  ;
+
+formalparams
+  : LP RP => ([])
+  | LP formal_params_list RP => (formal_params_list)
+  ;
+
+formal_params_list
+  : %try data_type ID COMMA formal_params_list => (A.as_formal_param(data_type,ID)::formal_params_list)
+  | %try data_type ID => ([A.as_formal_param(data_type,ID)])
+  ;
+
+data_type
+ : KW_int => (A.KType(A.KInt))
+ | KW_real => (A.KType(A.KReal))
+ | KW_texto => (A.KType(A.KText))
+ | KW_booleano => (A.KType(A.KBool))
+ ;
+
+actualparams
+  : LP RP => ([])
+  | LP actual_params_list RP => (actual_params_list)
+  ;
+
+actual_params_list
+  : %try expression COMMA actual_params_list => (expression :: actual_params_list)
+  | %try expression => ([expression])
+  ;
+
+expression
+  : %try sum RELATIONAL_OP sum => (A.InfixApp(sum1,RELATIONAL_OP,sum2))
+  | %try sum
+  ;
+
+sum
+  : %try term SUM_OP sum => (A.InfixApp(term,SUM_OP,sum))
+  | %try term
+  ;
+
+term
+  : %try factor MULTI_OP term => (A.InfixApp(factor,MULTI_OP,term))
+  | %try factor
+  ;
+
+factor
+  : CON_int => ( A.IntConstant(CON_int) )
+  | CON_real => ( A.RealConstant(CON_real) )
+  | CON_string => (A.StringConstant(CON_string))
+  | CON_boolean => (A.BoolConstant(CON_boolean))
+  | LP expression RP => (expression)
+  | Not factor => (A.Neg factor)
+  | %try ID actualparams => (A.CallFunc(ID, actualparams))
+  | %try ID => (A.Variable(ID))
   ;

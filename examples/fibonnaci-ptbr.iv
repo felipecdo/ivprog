@@ -1,23 +1,8 @@
-bloco principal(){
-    texto valor = "5";
-    inteiro numero = como_inteiro(valor);
-    inteiro resultado_recursivo = fibonacci_recursivo(numero);
-    inteiro resultado_iterativo = fibonacci_iterativo(numero);
-    
-    se (resultado_recursivo == resultado_iterativo){
-    escreva("Resultado recursivo é igual ao iterativo");
-    } senao se(resultado_recursivo > resultado_iterativo){
-    escreva("Resultado recursivo é maior ao iterativo");
-    } senao {
-    escreva("Resultado recursivo é menor ao iterativo");
-    }
-}
-
 bloco inteiro fibonacci_recursivo(inteiro n){
     se (n < 2){
         retorna n;
     } senao {
-        retorna fibonacci(n-1) + fibonacci(n-2);
+        retorna fibonacci_recursivo(n - 1) + fibonacci_recursivo(n - 2);
     }
 }
 
@@ -35,4 +20,19 @@ bloco inteiro fibonacci_iterativo(inteiro n){
         atual = novo;
     }
     retorna atual;
+}
+
+bloco principal(){
+    texto valor = "5";
+    inteiro numero = como_inteiro(valor);
+    inteiro resultado_recursivo = fibonacci_recursivo(numero);
+    inteiro resultado_iterativo = fibonacci_iterativo(numero);
+    
+    se (resultado_recursivo == resultado_iterativo){
+    escreva("Resultado recursivo é igual ao iterativo");
+    } senao se(resultado_recursivo > resultado_iterativo){
+    escreva("Resultado recursivo é maior ao iterativo");
+    } senao {
+    escreva("Resultado recursivo é menor ao iterativo");
+    }
 }

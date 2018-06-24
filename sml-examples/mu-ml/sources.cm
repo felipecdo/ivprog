@@ -1,0 +1,23 @@
+Library
+  structure MumlLexer
+  structure MumlTokens
+  structure Ast
+  structure Helpers
+  structure SymbolAnalysis
+  structure TypeInference
+  functor UnifierFn
+is
+  $/basis.cm
+  $/smlnj-lib.cm
+  $/ml-lpt-lib.cm
+  muml.grm : ml-antlr
+  muml.lex : ml-ulex
+  int_map.sml
+  symbol_map.sml
+  string_map.sml
+  symbol_analysis.sml
+  type_inference.sml
+  scope.sml
+  ast.sml
+  helpers.sml
+  exceptions.sml

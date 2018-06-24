@@ -2,16 +2,18 @@ structure IVProgTester =
   struct
     structure IP = IVProgParseFn(IVProgLexer)
 
+    exception Erro
+
     fun string_to_tokens(inputString: string): IVProgTokens.token list =
       let
         val initial_strm = IVProgLexer.streamifyInstream (TextIO.openString inputString)
         val lexer = IVProgLexer.lex (AntlrStreamPos.mkSourcemap())
-        fun dowork(strm) =
+        fun dowork(strm) =  
           let
             val lex_result = lexer strm
             val next_token = #1 lex_result
           in
-            if (next_token = IVProgTokens.EOF)
+            if IVProgTokens.isEOF next_token
             then []
             else next_token :: dowork(#3 lex_result)
           end
@@ -19,15 +21,68 @@ structure IVProgTester =
         dowork(initial_strm)
       end
 
-    fun string_to_ast(inputString: string): Ast.Exp =
+    fun tok2s tok = IVProgTokens.toString tok
+
+    fun string_to_ast(inputString: string) =
       let
+        val sm = AntlrStreamPos.mkSourcemap()
         val strm = IVProgLexer.streamifyInstream (TextIO.openString inputString)
-        val lexer = IVProgLexer.lex (AntlrStreamPos.mkSourcemap())
-        val (r, strm', errs) = IP.parse lexer strm
+        val lexer = IVProgLexer.lex (sm)
+        val (r, strm', errs,_) = IP.parse lexer strm
       in
-        (case r
-          of SOME(exp) => exp
-          |  _ => raise Exceptions.ParseError ("parse error on " ^ inputString))
+        print (String.concatWith "\n"
+          (List.map (AntlrRepair.repairToString tok2s sm)
+            errs));
+        r
       end
 
-end
+    fun file_to_visual_ast(file: string) =
+      let
+        val sm = AntlrStreamPos.mkSourcemap()
+        val strm = IVProgLexer.streamifyInstream (TextIO.openIn file)
+        val lexer = IVProgLexer.lex (sm)
+        val (r, strm', errs,_) = IP.parse lexer strm
+      in
+        case r of
+          SOME(env) => (print(String.concatWith "\n"
+          (List.map (AntlrRepair.repairToString tok2s sm)
+            errs));Ast.printEnv(env))
+          | NONE => (print(String.concatWith "\n"
+          (List.map (AntlrRepair.repairToString tok2s sm)
+            errs));
+            raise Erro )
+      end
+  
+    fun file_to_ast(file: string) =
+      let
+        val sm = AntlrStreamPos.mkSourcemap()
+        val strm = IVProgLexer.streamifyInstream (TextIO.openIn file)
+        val lexer = IVProgLexer.lex (sm)
+        val (r, strm', errs,_) = IP.parse lexer strm
+      in
+        case r of
+          SOME(env) => IVProgProcessor.inicializa(env)
+          | NONE => (print(String.concatWith "\n"
+          (List.map (AntlrRepair.repairToString tok2s sm)
+            errs));
+            raise Erro )
+      end
+
+    fun file_to_tokens(inputString: string): IVProgTokens.token list =
+      let
+        val initial_strm = IVProgLexer.streamifyInstream (TextIO.openIn inputString)
+        val lexer = IVProgLexer.lex (AntlrStreamPos.mkSourcemap())
+        fun dowork(strm) =  
+          let
+            val lex_result = lexer strm
+            val next_token = #1 lex_result
+          in
+            if IVProgTokens.isEOF next_token
+            then []
+            else next_token :: dowork(#3 lex_result)
+          end
+      in
+        dowork(initial_strm)
+      end
+
+  end

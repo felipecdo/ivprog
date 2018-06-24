@@ -1,167 +1,186 @@
 structure
 Ast = struct
 
-  type Symbol = {lab: string, id: int};
-
-  datatype Arg =
-      Name of Symbol ref
-    (* typed name *)
+  datatype BaseType =
+      KInt
+    | KReal
+    | KText
+    | KBool
     ;
+
+  datatype Type = 
+    KType of BaseType
+    | KUnit of BaseType list
+    ;
+
+  fun baseTypeToString(bType) = case bType of
+    KInt => "inteiro"
+    | KReal => "real"
+    | KBool => "booleano"
+    | KText => "texto"
+    ;
+
+  fun typeToString ktype = case ktype of
+    KType(t) => baseTypeToString t
+    | KUnit(l) => List.foldl (fn (a,b) => if b = "" then baseTypeToString(a) else b^", "^baseTypeToString(a)) "" l
+    ;
+  
+  type a = Type * string
 
   datatype Exp =
       IntConstant of int
     | StringConstant of string
-    | Unit
-    | Variable of Symbol ref
-    | App of Exp * Exp
+    | RealConstant of real
+    | BoolConstant of bool
+    | Variable of string
     | InfixApp of Exp * string * Exp
-    | Tuple of Exp list
-    (*| Select of int*)
-    | Sequence of Exp list
-    (* typed expression *)
-    (* conjunction & discjunction, possibly as infix applications *)
-    | IfThenElse of Exp * Exp * Exp
-    | LetIn of Exp list * Exp
-    | Fn of Arg list * Exp
-    | Valdec of Arg * bool * Exp
+    | CallFunc of string * Exp list
+    | Neg of Exp
     ;
 
-  datatype BaseKind =
-      KInt
-    | KString
-    | KBool
-    | KUnit
+  datatype Commands = 
+      Return of Exp
+    | Attrib of string * Exp
+    | Decl of string * Type * Exp
+    | CallProc of string * Exp list
+    | IfThenElse of Exp * Commands list * Commands list
+    | While of Exp * Commands list
+    | For of string * Exp * Exp * Commands list
+    | Skip
+    | LangCall of string
     ;
 
-  datatype Type =
-      BaseType of BaseKind
-    | TypeVariable of int
-    | ArrowType of Type * Type
-    | TupleType of Type list
+  datatype Block = 
+      Function of string * Type * a list * Commands list
+    | Procedure of string * a list * Commands list
     ;
 
-  fun create_symbol(name) = {lab = name, id = 0}
+  datatype BlockEnv = Env of Block StringMap.map ref * Block StringMap.map ref
 
-  fun listeq(comp)(l, r) = case (l, r)
-    of (nil, nil) => true
-    | (l1 :: l2, r1 :: r2) => comp(l1, r1) andalso listeq comp (l2, r2)
-    | (_, _) => false
-    ;
 
-  fun argeq(Name(l), Name(r)) = !l = !r
-    ;
+  fun as_formal_param(t:Type, identificador:string) = (t, identificador)
 
-  fun eq(IntConstant(l1), IntConstant(r1)) = l1 = r1
-    | eq(StringConstant(l1), StringConstant(r1)) = l1 = r1
-    | eq(Unit, Unit) = true
-    | eq(Tuple(l), Tuple(r)) = listeq eq (l, r)
-    | eq(Sequence(l), Sequence(r)) = listeq eq (l, r)
-    | eq(Variable(l1), Variable(r1)) = !l1 = !r1
-    | eq(App(l1, l2), App(r1, r2)) =
-        eq(l1, r1) andalso
-        eq(l2, r2)
-    | eq(InfixApp(l1, opl, l2), InfixApp(r1, opr, r2)) =
-        eq(l1, r1) andalso
-        opl = opr andalso
-        eq(l2, r2)
-    | eq(IfThenElse(l1, l2, l3), IfThenElse(r1, r2, r3)) =
-        eq(l1, r1) andalso
-        eq(l2, r2) andalso
-        eq(l3, r3)
-    | eq(LetIn(l1, l2), LetIn(r1, r2)) =
-        listeq eq (l1, r1) andalso
-        eq(l2, r2)
-    | eq(Fn(l1, l2), Fn(r1, r2)) =
-        listeq argeq (l1, r1) andalso
-        eq(l2, r2)
-    | eq(Valdec(l1, l2, l3), Valdec(r1, r2, r3)) =
-        argeq(l1, r1) andalso
-        l2 = r2 andalso
-        eq(l3, r3)
-    | eq(_, _) = false
-    ;
-
-  fun toString_list(sep)(toString)(ls) = case ls
-    of hd :: nil => toString(hd)
-    | hd1 :: hd2 :: tail => toString(hd1) ^ sep ^ " " ^ (toString_list sep toString (hd2 :: tail))
-    |  nil => ""
-    ;
-
-  fun toString_sym(sym: Symbol) =
-    if #id sym = 0 then #lab sym else (#lab sym) ^ "_" ^ (Int.toString (#id sym))
-
-  fun niceTvarPrinter() =
+  fun create_procedure(id:string,lista: a list,comandos: Commands list) = 
     let
-      val assigns: (char IntMap.map) ref = ref IntMap.empty
-      val next: char ref = ref #"a"
+      val bloco = Procedure(id,lista,comandos)
+    in if validate_proc(comandos) then (id,bloco) else raise Exceptions.ProcedureReturn("O bloco "^id^" não pode conter o comando retorna.")
+    end
+  and validate_proc([]) = true
+    | validate_proc(c::cs) = (case c of
+      Return _ => false
+      | IfThenElse(_,c1,c2) => validate_proc(c1) andalso validate_proc(c2) andalso validate_proc(cs)
+      | While(_, c1) =>  validate_proc(c1) andalso validate_proc(cs)
+      | For(_,_,_,c1) =>  validate_proc(c1) andalso validate_proc(cs)
+      | _ => validate_proc(cs))
+
+  and create_function(id:string, tipo:Type, lista: a list, comandos: Commands list) = 
+    let
+      val bloco = Function(id, tipo, lista, comandos)
+    in if validate_fun(comandos) then (id,bloco) else raise Exceptions.FunctionMustReturn("O bloco "^id^" não garante retorno.")  
+    end
+  and validate_fun(c::cs) = (case c of
+    Return _ => true
+    | IfThenElse(_,_,c2) => validate_fun(c2) orelse validate_fun(cs)
+    | _ => validate_fun(cs))
+  | validate_fun([]) = false
+
+  fun empty_env() = let
+    val imprimir = Procedure("escreva",[(KUnit([KText,KInt,KBool,KReal]),"p1")],[LangCall("imprimir")])
+    val ler = Function("leia",KType(KText),[],[LangCall("leia")])
+    val asInt = Function("como_inteiro",KType(KInt),[(KUnit([KText,KReal]),"p1")],[LangCall("como_inteiro")])
+    val asReal = Function("como_real",KType(KReal),[(KUnit([KText,KInt]),"p1")],[LangCall("como_real")])
+    val asBool = Function("como_booleano",KType(KBool),[(KType(KText),"p1")],[LangCall("como_booleano")])
+    val asText = Function("como_texto",KType(KText),[(KUnit([KInt,KBool,KReal]),"p1")],[LangCall("como_texto")])
+    val lista = [("escreva",imprimir),("leia",ler),("como_inteiro",asInt),
+      ("como_real",asReal),("como_booleano",asBool),("como_texto",asText)
+      ]
+    val mLang = ref StringMap.empty
+    fun addToEnv((id,bloco)) = mLang := StringMap.insert((!mLang),id,bloco)
+    val _ = List.map addToEnv lista
+
+  in
+    Env((ref StringMap.empty), mLang)
+  end 
+
+  fun convert_env(Env(m,ml), []) = Env(m,ml)
+    | convert_env(Env(m,ml), (id,bloco)::tl) = let
+      val _ = m :=StringMap.insert((!m),id,bloco)
     in
-      fn(t) => case t of
-        TypeVariable r =>
-          let
-            val assigned = case IntMap.find(!assigns, r) of
-              SOME a => a
-            | NONE => (
-              assigns := IntMap.insert(!assigns, r, !next);
-              next := Char.succ (!next);
-              Char.pred (!next)
-              )
-          in
-            "'" ^ (Char.toString assigned)
-          end
-      | _ => raise (Exceptions.IllegalStateException "unreachable")
+      convert_env(Env(m,ml),tl)
     end
 
-  fun simpleTvarPrinter(TypeVariable r) = "'X_" ^ (Int.toString r)
-    | simpleTvarPrinter(_) = raise (Exceptions.IllegalStateException "unreachable")
+  fun isEnvDefined(Env(m,ml), id) = case StringMap.find((!m),id) of
+      SOME(bloco) => true
+    | NONE => case StringMap.find((!ml), id) of
+      SOME(lang) => true
+      | NONE => false
 
-  fun toString_type_helper(printer)(t) = case t of
-      BaseType(KInt) => "int"
-    | BaseType(KBool) => "bool"
-    | BaseType(KString) => "string"
-    | BaseType(KUnit) => "unit"
-    | TypeVariable(r) => printer t
-    | ArrowType(l, r) => (toString_type_helper printer l) ^ " -> " ^ (toString_type_helper printer r)
-    | TupleType(l) => toString_list " *" (toString_type_helper printer) l
+  fun applyEnv(Env(m,ml), id) = case StringMap.find((!m),id) of
+      SOME(bloco) => bloco
+    | NONE => case StringMap.find((!ml), id) of
+      SOME(lang) => lang
+      | NONE => (print("Searching for: "^id^"\nOptions: ["^concatList(StringMap.listKeys((!m)))^"\n");raise Exceptions.UndefinedBlock)
 
-  fun toString_type(t: Type): string = toString_type_helper simpleTvarPrinter t
+  and concatList([]) = "]"
+        | concatList(h::t) = h^", "^concatList(t)
 
-  fun toString_arg(Name(r)) = toString_sym (!r)
+  fun expListToString([]) = ""
+        | expListToString((exp)::t) = expToString(exp,0) ^", "^ expListToString(t)
 
-  fun toString(exp: Exp): string =
-    let
-      fun precedence(someExp: Exp): int = case someExp of
-          IntConstant _ =>    1
-        | StringConstant _ => 1
-        | Unit =>             1
-        | Variable _ =>       1
-        | LetIn _ =>          1
-        | App _ =>            2
-        | Tuple _ =>          2
-        | InfixApp _ =>       3
-        | IfThenElse _ =>     4
-        | Fn _ =>             5
-        | Valdec _ =>         6
-        | Sequence _ =>       6
+  and expToString(exp, count) = case exp of
+    IntConstant v => "IntConstant("^Int.toString(v)^")"
+    | StringConstant  v => "StringConstant("^v^")"
+    | RealConstant  v => "RealConstant("^Real.toString(v)^")"
+    | BoolConstant  v => "BoolConstant("^Bool.toString(v)^")"
+    | Variable  id => "Variable("^id^")"
+    | InfixApp (exp1,str,exp2) => "InfixApp("^expToString(exp1, count+1)^", "^str^", "^expToString(exp2, count+1)^")"
+    | CallFunc (str,expList) => "CallFunc("^str^", ["^expListToString(expList)^"])"
+    | Neg  v => "Neg("^expToString(v, count+1)^")"
+  
+  fun commandListToString([]) = ""
+        | commandListToString((cmd)::t) = commandToString(cmd) ^"; "^ commandListToString(t)
 
-      fun parenthise(otherExp) =
-        if precedence(exp) <= precedence(otherExp)
-        then "(" ^ (toString otherExp) ^ ")"
-        else toString otherExp
-    in
-      case exp of
-        IntConstant(v) => Int.toString v
-      | StringConstant(v) => "\"" ^ v ^ "\""
-      | Unit => "()"
-      | Tuple(l) => "(" ^ (toString_list "," parenthise l) ^ ")"
-      | Sequence(l) => toString_list ";" parenthise l
-      | Variable(r) => toString_sym (!r)
-      | App(l, r) => (parenthise l) ^ " " ^ (parenthise r)
-      | InfixApp(exp1, ope, exp2) => (parenthise exp1) ^ " " ^ ope ^ " " ^ (parenthise exp2)
-      | IfThenElse(c, l, r) => "if " ^ (parenthise c) ^ " then " ^ (parenthise l) ^ " else " ^ (parenthise r)
-      | LetIn(decls, body) => "let " ^ (toString_list ";" toString decls) ^ " in " ^ toString(body) ^ " end"
-      | Fn(args, body) => "fn(" ^ (toString_list "," toString_arg args) ^ ") => " ^ (parenthise body)
-      | Valdec(name, recursive, body) =>
-          (if recursive then "fun " else "val ") ^ toString_arg(name) ^ " = " ^ (parenthise body)
-    end
+  and commandToString command = case command of
+    Return exp => "Return: "^expToString(exp,0) 
+    | Attrib (str,exp) => "Attrib: "^str^" <- "^expToString(exp,0)
+    | Decl (str,decType,exp)  => (expToString(exp,0);"Decl: "^str^":"^typeToString(decType)^" <- "^expToString(exp, 0))
+    | CallProc (str,expList)  => "CallProc: "^str^" ("^expListToString(expList)^")" 
+    | IfThenElse (exp, cmdList1, cmdList2) => "IfThenElse: "^expToString(exp,0) 
+                                            ^"\n\t\t\t true:  "^commandListToString(cmdList1)
+                                            ^"\n\t\t\t false: "^commandListToString(cmdList2)
+    | While (exp, cmdList) => "While: "^expToString(exp,0) 
+                                       ^"\n\t\t\t true:  "^commandListToString(cmdList)
+    | For (str, exp1, exp2, cmdList) => "For: "^expToString(exp1,0) ^"; "^expToString(exp2,0) 
+                                             ^"\n\t\t\t true:  "^commandListToString(cmdList)
+    | Skip => "Skip"
+    | LangCall str => "LangCall: "^str
 
+  fun printCmds([]) = true
+        | printCmds((command)::t) = (print("\n\t\t"^commandToString(command));true) andalso printCmds(t)
+
+  fun printParams([]) = true
+        | printParams((tp,var)::t) = (print((var)^":"^typeToString(tp)^"; ");true)  andalso printParams(t)
+
+  fun printBlock(Function(str,returnType,list,commands)) = 
+          (print(str^" (funcao)\n\t retorno: "^typeToString(returnType)^"\n\t parametros: ");true) 
+          andalso printParams(list) 
+          andalso ((print("\n\t comandos: ");true)) 
+          andalso printCmds(commands)
+          andalso ((print("\n\n");true)) 
+        | printBlock(Procedure(str,list,commands)) = 
+          (print(str^" (procedure)\n\t parametros: ");true) 
+          andalso printParams(list) 
+          andalso ((print("\n\t comandos: ");true)) 
+          andalso printCmds(commands) 
+          andalso ((print("\n\n");true)) 
+
+  fun printSomething(map:Block StringMap.map ref, h) = case StringMap.find((!map),h) of
+      SOME(bloco) => printBlock(bloco)
+    | NONE => true
+
+  fun printListEnv([], map:Block StringMap.map ref) = true
+        | printListEnv(h::t, map) = printSomething(map, h)  andalso printListEnv(t, map)
+        
+  fun printEnv(Env(m,ml)) =  printListEnv (StringMap.listKeys((!m)), m) 
+    
 end
